@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: django_app
+    ports:
+      - "8000:8000"
+    volumes:
+#      - .:/app
+      - ./data:/app/data
+#    depends_on:
+#      - redis
+    command: gunicorn --log-level info --workers 3 --timeout 1200 --bind :8000 exp_d.wsgi:application
+
+#
+#  celery:
+#    build: .
+#    container_name: django_celery
+#    depends_on:
+#      - redis
+#    command: celery -A exp_d worker -l info
+#
+#  redis:
+#    image: redis:alpine
+#    container_name: redis
+#    ports:
+#      - "6379:6379"
+#    healthcheck:
+#      test: [ "CMD", "redis-cli", "ping" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+
+volumes:
+  app:
+  data:

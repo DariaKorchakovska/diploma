@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Реєстрація</h2>
+<form method="post" style="max-width: 300px; margin: auto;">
+    {% csrf_token %}
+    <label for="id_username">Введіть username</label>
+    {{ form.username }}
+    <label for="id_email">Введіть email</label>
+    {{ form.email }}
+
+    <label for="id_password1">Введіть пароль</label>
+    {{ form.password1 }}
+
+    <label for="id_password2">Повторіть пароль</label>
+    {{ form.password2 }}
+
+    <button type="submit" style="background-color: #a6c48a; border: none; color: white; padding: 10px; margin-top: 10px; cursor: pointer; width: 100%;">Зареєструватися</button>
+</form>
+{% if form.errors %}
+    <span class="user-info">
+<span>Помилка</span>
+<span style="color: red;">{{ form.errors }}</span></span>
+{% endif %}
+{% endblock %}

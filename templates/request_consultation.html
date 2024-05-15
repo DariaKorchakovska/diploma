@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Консультація</h2>
+<p>Для запису на консультацію, будь ласка, оберіть дату та час.</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Надіслати заявку</button>
+</form>
+{% endblock %}

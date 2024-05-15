@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Головна сторінка</h1>
+<div class="coin-bag"></div>
+
+{% if user.is_authenticated %}
+    <h2>Ваші фінансові цілі</h2>
+    <table>
+        <tr>
+            <th>Опис</th>
+            <th>Сума</th>
+            <th>Тип валюти</th>
+            <th>Дата</th>
+        </tr>
+        {% for goal in goals %}
+        <tr>
+            <td>{{ goal.description }}</td>
+            <td>{{ goal.amount }}</td>
+            <td>{{ goal.cash_type.name }}</td>
+            <td>{{ goal.date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Ваші консультації</h2>
+    <table>
+        <tr>
+            <th>Дата</th>
+            <th>Час</th>
+            <th>Затверджено</th>
+        </tr>
+        {% for consultation in consultations %}
+        <tr>
+            <td>{{ consultation.date }}</td>
+            <td>{{ consultation.time }}</td>
+            <td>{{ consultation.approved|yesno:"Так,Ні" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Вхід</h2>
+<form method="post" style="max-width: 300px; margin: auto;">
+    {% csrf_token %}
+    {{ form.username.errors }}
+    <label for="username">Введіть username</label>
+    {{ form.username }} <!-- Assuming the form has an 'email' field -->
+
+    {{ form.password.errors }}
+    <label for="password">Введіть пароль</label>
+    {{ form.password }} <!-- Assuming the form has a 'password' field -->
+
+    <div style="margin: 10px 0;">
+        {{ form.remember_me }} Запам'ятати мене
+    </div>
+    
+    <button type="submit">Увійти</button>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</form>
+<p style="text-align: center;">
+    <a href="{% url 'password_reset' %}">Забули пароль?</a>
+</p>
+{% endblock %}

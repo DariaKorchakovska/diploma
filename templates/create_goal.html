@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Введення фінансової цілі</h2>
+<p>Приклади: "Купівля нового авто" або "Накопичення на відпустку"</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Додати ціль</button>
+</form>
+{% endblock %}

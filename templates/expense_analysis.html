@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Аналіз витрат</h2>
+<div>
+    <h4>Оберіть період часу для аналізу:</h4>
+    <form id="filter-form">
+        <label>
+            <input type="radio" name="period" value="week" checked> Поточний тиждень
+        </label>
+        <label>
+            <input type="radio" name="period" value="month"> Поточний місяць
+        </label>
+        <label>
+            <input type="radio" name="period" value="year"> Цей рік
+        </label>
+        <button type="submit">Фільтрувати</button>
+    </form>
+</div>
+<div>
+    <h4>Діаграма витрат</h4>
+    <canvas style="width: 95%" id="expense-chart"></canvas>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.getElementById('filter-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const period = document.querySelector('input[name="period"]:checked').value;
+    fetch(`/filter-expenses/?period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            const expenseSummary = data.expense_summary;
+            const labels = Object.keys(expenseSummary);
+            const values = Object.values(expenseSummary);
+
+            const ctx = document.getElementById('expense-chart').getContext('2d');
+            if (window.expenseChart) {
+                window.expenseChart.destroy();
+            }
+            window.expenseChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Витрати за типами',
+                        data: values,
+                        backgroundColor: [
+                            'rgba(255,99,132,0.41)',
+                            'rgba(54,162,235,0.56)',
+                            'rgba(255,206,86,0.44)',
+                            'rgba(75,192,192,0.52)',
+                            'rgba(153,102,255,0.65)',
+                            'rgba(255,159,64,0.51)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                }
+            });
+        });
+});
+</script>
+{% endblock %}

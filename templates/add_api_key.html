@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Запит на витрати</h2>
+<p>Для автоматичного підтягування інформації про ваші витрати нам необхідний доступ до вашого API ключа (лише читання)</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Додати ключ</button>
+</form>
+{% endblock %}

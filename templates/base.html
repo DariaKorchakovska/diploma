@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Expenses Monitoring</title>
+    <style>
+        :root {
+            --bg: #ffffff; 
+            --text: #333333; 
+            --text-light: #555555; 
+            --accent: #6c9166;
+            --accent-hover: #6c9867;
+            --accent-text: #ffffff;
+            --preformatted: #444444;
+            --disabled: #cccccc;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #e9f3e1; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+        input[type="text"], input[type="password"], input[type="email"], button { display: block; width: 100%; padding: 10px; margin: 10px 0; }
+        button { background-color: #435942FF; border: none; border-radius: 5px; color: white; cursor: pointer; }
+
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #4E4E4DFF; color: #BDDAB4FF; }
+        header .user-info { display: flex; align-items: center; }
+        header .user-info img { width: 50px; height: 50px; border-radius: 25px; margin-right: 10px; }
+        header .logout { margin-left: auto; }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background-color: #e9f3e1;
+            border-radius: 0px !important;
+        }
+
+        .menu {
+            background-color: #c9e0bd;
+            padding: 20px;
+            width: 250px;
+            border-radius: 0px !important;
+        }
+
+        .menu button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #a6c48a;
+            color: #333;
+        }
+
+        .menu button.disabled {
+            background-color: #e2d4c3;
+            cursor: not-allowed;
+        }
+        
+        .menu ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #c9e0bd;
+            border-radius: 0px;
+            color: #333;
+        }
+        table {
+            width: 70%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            background-color: #c9e0bd;
+            color: #333;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        footer { 
+            background: #c9e0bd; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; color: #435942FF !important;
+            border-top: 1px solid var(--border) !important;
+            margin-top: 0rem !important;
+        }
+        .footer button { background-color: #435942FF; border: none; border-radius: 5px; color: white; cursor: pointer; }
+        
+        formContainer {
+        position: relative;
+        margin: 8% auto;
+        min-height: 60%;
+        width: 50%;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+        background: white !important;
+        padding: 0px 0px 5px 15px;
+        box-sizing: border-box;
+        border-radius: 8px;
+    }
+    </style>
+</head>
+<body>
+<header>
+    <div class="user-info">
+        <span>{% if user.is_authenticated %}{{ user.username }}{% else %}Гість{% endif %}</span>
+    </div>
+    <h1>Personal Expenses Monitoring</h1>
+</header>
+    <div class="container">
+<div class="menu">
+    <ul>
+        <li>
+            <form action="{% url 'index' %}" method="get">
+                <button type="submit">Головна сторінка</button>
+            </form>
+        </li>
+        {% if user.is_authenticated %}{% else %}
+        <li>
+            <form action="{% url 'register' %}" method="get">
+                <button type="submit">Зареєструватися</button>
+            </form>
+        </li>
+        <li>
+            <form action="{% url 'login' %}" method="get">
+                <button type="submit">Увійти</button>
+            </form>
+        </li>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <li>
+            <form action="{% url 'add_api_key' %}" method="get">
+                <button type="submit">Підключити банк</button>
+            </form>
+        </li>
+        <li>
+            <form action="{% url 'create_goal' %}" method="get">
+                <button type="submit">Створити ціль</button>
+            </form>
+        </li>
+        <li>
+            <form action="{% url 'expense_analysis' %}" method="get">
+                <button type="submit">Аналіз витрат</button>
+            </form>
+        </li>
+        <li>
+            <form action="{% url 'request_consultation' %}" method="get">
+                <button type="submit">Замовити консультацію</button>
+            </form>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+        <div class="main-content">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+    <footer>
+    <span>
+        <span>monitoring.expences@gmail.com</span>
+        <span> +38 000 000 000 0</span>
+    </span>
+        <span>
+            {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                        <button type="submit" class="logout">Вийти</button>
+                </form>
+            {% else %}
+                <form action="{% url 'login' %}" method="get">
+                    <button type="submit" class="logout">Увійти</button>
+                </form>
+            {% endif %}</span>
+    </footer>
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>
