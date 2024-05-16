@@ -135,10 +135,10 @@ CELERY_BROKER_URL = 'redis://redis:6379/0'  # Указывает на локал
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # Место хранения результатов задач
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
-CSRF_COOKIE_DOMAIN = 'diploma.zolotarev.pp.ua'
-SESSION_COOKIE_DOMAIN = '.diploma.zolotarev.pp.ua'
+CSRF_COOKIE_DOMAIN = 'https://daria-korchakovska.pp.ua''
+SESSION_COOKIE_DOMAIN = '.daria-korchakovska.pp.ua'
 CSRF_TRUSTED_ORIGINS = [
-    'https://diploma.zolotarev.pp.ua',
+    'https://daria-korchakovska.pp.ua',
 ]
 LOGGING = {
     'version': 1,
