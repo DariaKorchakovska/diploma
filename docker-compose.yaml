@@ -9,6 +9,7 @@ services:
     volumes:
 #      - .:/app
       - ./data:/app/data
+      - ./staticfiles:/app/staticfiles
 #    depends_on:
 #      - redis
     command: gunicorn --log-level info --workers 3 --timeout 1200 --bind :8000 exp_d.wsgi:application
