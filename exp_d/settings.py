@@ -131,11 +131,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'expenses_monitoring.CustomUser'
-CELERY_BROKER_URL = 'redis://redis:6379/0'  # Указывает на локальный сервер Redis
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # Место хранения результатов задач
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CSRF_COOKIE_DOMAIN = 'https://daria-korchakovska.pp.ua'
+# CELERY_BROKER_URL = 'redis://redis:6379/0'  # Указывает на локальный сервер Redis
+# CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # Место хранения результатов задач
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+CSRF_COOKIE_DOMAIN = '.daria-korchakovska.pp.ua'
 SESSION_COOKIE_DOMAIN = '.daria-korchakovska.pp.ua'
 CSRF_TRUSTED_ORIGINS = [
     'https://daria-korchakovska.pp.ua',
