@@ -57,11 +57,8 @@ class BankConnection(models.Model):
 
 class Account(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    account_id = models.CharField(max_length=100)
-    maskedPan = models.CharField(max_length=100)
-    iban = models.CharField(max_length=100)
-    currencyCode = models.IntegerField()
-    balance = models.FloatField()
+    account_id = models.CharField(max_length=25)
+    maskedPan = models.CharField(max_length=25)
 
     class Meta:
         indexes = [

@@ -4,16 +4,11 @@
 <div>
     <h4>Оберіть період часу для аналізу:</h4>
     <form id="filter-form">
-        <label>
-            <input type="radio" name="period" value="week" checked> Поточний тиждень
-        </label>
-        <label>
-            <input type="radio" name="period" value="month"> Поточний місяць
-        </label>
-        <label>
-            <input type="radio" name="period" value="year"> Цей рік
-        </label>
-        <button type="submit">Фільтрувати</button>
+                <select name="period">
+                    <option value="week">Поточний тиждень</option>
+                    <option value="month">Поточний місяць</option>
+                    <option value="year">Цей рік</option>
+                </select>
     </form>
 </div>
 <div>
