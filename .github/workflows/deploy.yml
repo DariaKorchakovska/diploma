@@ -1,0 +1,34 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.DEPLOY_KEY }}
+        name: deploy_key
+        known_hosts: github.com
+
+    - name: Deploy to Server
+      env:
+        HOST: 129.159.41.235
+        USER: ubuntu
+        PORT: 22
+      run: |
+        ssh -o StrictHostKeyChecking=no -i deploy_key -p $PORT $USER@$HOST << 'EOF'
+          cd /opt/etc/dockers/DariaKorchakovska/diploma
+          git pull
+          docker-compose down
+          docker-compose up --build -d
+        EOF
