@@ -11,6 +11,17 @@ services:
       - ./staticfiles:/app/staticfiles
     command: gunicorn --log-level info --workers 3 --timeout 1200 --bind :8000 exp_d.wsgi:application
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./staticfiles:/app/staticfiles
+    depends_on:
+      - web
+
 volumes:
   app:
   data:
