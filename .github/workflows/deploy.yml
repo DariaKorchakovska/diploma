@@ -24,4 +24,9 @@ jobs:
         USER: ubuntu
         PORT: 22
       run: |
-        ssh -o StrictHostKeyChecking=no -i deploy_key -p $PORT $USER@$HOST /opt/etc/dockers/DariaKorchakovska/diploma/update.sh
+        ssh -o StrictHostKeyChecking=no -i deploy_key -p $PORT $USER@$HOST << 'EOF'
+          cd /opt/etc/dockers/DariaKorchakovska/diploma
+          git pull origin main
+          docker-compose down
+          docker-compose up --build -d
+        EOF
