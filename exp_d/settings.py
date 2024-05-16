@@ -140,7 +140,6 @@ SESSION_COOKIE_DOMAIN = '.daria-korchakovska.pp.ua'
 CSRF_TRUSTED_ORIGINS = [
     'https://daria-korchakovska.pp.ua',
 ]
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
