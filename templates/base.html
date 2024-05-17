@@ -162,6 +162,13 @@
                 <button type="submit">Замовити консультацію</button>
             </form>
         </li>
+        {% if user.is_staff %}
+        <li>
+            <form action="{% url 'consultation_list' %}" method="get">
+                <button type="submit">Підтвердити консультації</button>
+            </form>
+        </li> 
+        {% endif %}
         {% endif %}
     </ul>
 </div>

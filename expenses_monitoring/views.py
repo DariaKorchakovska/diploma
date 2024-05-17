@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login
 from .forms import RegisterForm, LoginForm, ApiKeyForm, ConsultationForm, GoalForm
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from .lib import fetch_and_update_expenses, sync_user_accounts, get_previous_month_time_bounds, get_latest_bounds
 from .models import Goal, Consultation, Expense
@@ -88,7 +88,7 @@ def add_api_key(request):
                 sync_user_accounts(request.user)
             start_of_previous_month, end_of_previous_month = get_previous_month_time_bounds()
             threadm = threading.Thread(target=sync_user_accounts,
-                                      args=(request.user, start_of_previous_month, end_of_previous_month))
+                                       args=(request.user, start_of_previous_month, end_of_previous_month))
             threadm.start()
             return redirect('index')
     else:
@@ -127,6 +127,7 @@ def create_goal(request):
         form = GoalForm()
     return render(request, 'create_goal.html', {'form': form})
 
+
 @login_required
 def filter_expenses(request):
     user = request.user
@@ -155,6 +156,7 @@ def filter_expenses(request):
 
     return JsonResponse({'expense_summary': expense_summary})
 
+
 @login_required
 def expense_analysis(request):
     # fetch_and_update_expenses(request.user.id)
@@ -163,3 +165,28 @@ def expense_analysis(request):
                               args=(request.user.id, start_of_current_month, current_time))
     thread.start()
     return render(request, 'expense_analysis.html')
+
+
+def is_staff(user):
+    return user.is_staff
+
+
+@user_passes_test(is_staff)
+def consultation_list(request):
+    consultations = Consultation.objects.all()
+    if request.method == 'POST':
+        form = ConsultationForm(request.POST)
+        if form.is_valid():
+            consultation_id = request.POST.get('consultation_id')
+            consultation = Consultation.objects.get(id=consultation_id)
+            consultation.approved = form.cleaned_data['approved']
+            consultation.save()
+            return redirect('consultation_list')
+    else:
+        form = ConsultationForm()
+
+    context = {
+        'consultations': consultations,
+        'form': form
+    }
+    return render(request, 'consultation_list.html', context)

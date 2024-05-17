@@ -62,3 +62,8 @@ class BankConnectionForm(forms.ModelForm):
         widgets = {
             'api_key': forms.PasswordInput(render_value=True),
         }
+
+class ConsultationForm(forms.ModelForm):
+    class Meta:
+        model = Consultation
+        fields = ['approved']
