@@ -21,7 +21,7 @@
                     <td>{{ consultation.date }}</td>
                     <td>{{ consultation.time }}</td>
                     <td>
-                        <input type="checkbox" name="approved" value="{{ consultation.id }}" {% if consultation.approved %}checked{% endif %}>
+                        <input type="checkbox" name="approved_{{ consultation.id }}" {% if consultation.approved %}checked{% endif %}>
                     </td>
                     <td>
                         <button type="submit" name="consultation_id" value="{{ consultation.id }}">Підтвердити</button>

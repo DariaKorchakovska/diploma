@@ -175,18 +175,14 @@ def is_staff(user):
 def consultation_list(request):
     consultations = Consultation.objects.all()
     if request.method == 'POST':
-        form = ConsultationForm(request.POST)
-        if form.is_valid():
-            consultation_id = request.POST.get('consultation_id')
-            consultation = Consultation.objects.get(id=consultation_id)
-            consultation.approved = form.cleaned_data['approved']
-            consultation.save()
-            return redirect('consultation_list')
-    else:
-        form = ConsultationAPPForm()
+        consultation_id = request.POST.get('consultation_id')
+        consultation = Consultation.objects.get(id=consultation_id)
+        approved = request.POST.get(f'approved_{consultation_id}') == 'on'
+        consultation.approved = approved
+        consultation.save()
+        return redirect('consultation_list')
 
     context = {
         'consultations': consultations,
-        'form': form
     }
     return render(request, 'consultation_list.html', context)
