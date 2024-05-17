@@ -1,11 +1,13 @@
 from django.contrib import admin
 
+from .forms import BankConnectionForm
 from .models import BankConnection, Consultation, Goal, CustomUser, CashType, Expense, Account
 
 
 class BankConnectionAdmin(admin.ModelAdmin):
-    list_display = ['user', 'api_key']
+    list_display = ['user']
     list_filter = ['user']
+    form = BankConnectionForm
 
 
 class ConsultationAdmin(admin.ModelAdmin):

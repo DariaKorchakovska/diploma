@@ -54,3 +54,11 @@ class GoalForm(forms.ModelForm):
             'cash_type': 'Виберіть тип коштів',
             'date': 'Виберіть дату'
         }
+
+class BankConnectionForm(forms.ModelForm):
+    class Meta:
+        model = BankConnection
+        fields = '__all__'
+        widgets = {
+            'api_key': forms.PasswordInput(render_value=True),
+        }
