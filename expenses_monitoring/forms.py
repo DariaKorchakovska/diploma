@@ -63,7 +63,7 @@ class BankConnectionForm(forms.ModelForm):
             'api_key': forms.PasswordInput(render_value=True),
         }
 
-class ConsultationForm(forms.ModelForm):
+class ConsultationAPPForm(forms.ModelForm):
     class Meta:
         model = Consultation
         fields = ['approved']

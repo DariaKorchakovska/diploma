@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login
-from .forms import RegisterForm, LoginForm, ApiKeyForm, ConsultationForm, GoalForm
+from .forms import RegisterForm, LoginForm, ApiKeyForm, ConsultationForm, GoalForm, ConsultationAPPForm
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 
@@ -183,7 +183,7 @@ def consultation_list(request):
             consultation.save()
             return redirect('consultation_list')
     else:
-        form = ConsultationForm()
+        form = ConsultationAPPForm()
 
     context = {
         'consultations': consultations,
