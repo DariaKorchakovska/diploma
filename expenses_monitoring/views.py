@@ -173,7 +173,7 @@ def is_staff(user):
 
 @user_passes_test(is_staff)
 def consultation_list(request):
-    consultations = Consultation.objects.all()
+    consultations = Consultation.objects.filter(approved=False)
     if request.method == 'POST':
         consultation_id = request.POST.get('consultation_id')
         consultation = Consultation.objects.get(id=consultation_id)
