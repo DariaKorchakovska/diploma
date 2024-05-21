@@ -212,9 +212,9 @@ def generate_pdf_report(user, expenses, expense_summary, period):
         table_data.append([category, f"{amount:.2f}"])
 
     c.setFont("roboto", 10)
-    x_offset = 100
+    x_offset = 140
     y_offset = height - 140
-    line_height = 15
+    line_height = 17
 
     for row in table_data:
         c.drawString(x_offset, y_offset, row[0])
