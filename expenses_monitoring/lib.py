@@ -12,7 +12,8 @@ import requests
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
-
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
 from django.core.exceptions import ObjectDoesNotExist
 
 from expenses_monitoring.models import CashType, Expense, CustomUser, Account
@@ -194,10 +195,12 @@ def generate_pdf_report(user, expenses, expense_summary, period):
     c = canvas.Canvas(filename, pagesize=letter)
     width, height = letter
 
-    c.setFont("Helvetica", 16)
+    # Register the DejaVu Sans font
+    pdfmetrics.registerFont(TTFont('roboto', 'data/roboto.ttf'))
+    c.setFont("DejaVuSans", 16)
     c.drawString(100, height - 50, f"Expense Report for {user.username}")
 
-    c.setFont("Helvetica", 12)
+    c.setFont("DejaVuSans", 12)
     c.drawString(100, height - 80, f"Period: {period.capitalize()}")
 
     c.drawString(100, height - 110, "Expenses by Category:")
@@ -206,12 +209,16 @@ def generate_pdf_report(user, expenses, expense_summary, period):
     for category, amount in expense_summary.items():
         table_data.append([category, f"{amount:.2f}"])
 
-    table = c.beginText(100, height - 140)
-    table.setFont("Helvetica", 10)
-    table.setFillColor(colors.black)
-    for row in table_data:
-        table.textLine(f"{row[0]:<20} {row[1]:>10}")
+    c.setFont("DejaVuSans", 10)
+    x_offset = 100
+    y_offset = height - 140
+    line_height = 15
 
-    c.drawText(table)
+    for row in table_data:
+        c.drawString(x_offset, y_offset, row[0])
+        c.drawRightString(x_offset + 200, y_offset, row[1])
+        y_offset -= line_height
+        c.line(x_offset, y_offset, x_offset + 200, y_offset)
+
     c.save()
     return filename
