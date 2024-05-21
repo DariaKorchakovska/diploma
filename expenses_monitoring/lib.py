@@ -9,6 +9,10 @@ from exp_d.settings import MMC
 from django.db import transaction
 import requests
 
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+
 from django.core.exceptions import ObjectDoesNotExist
 
 from expenses_monitoring.models import CashType, Expense, CustomUser, Account
@@ -183,3 +187,31 @@ def load_expenses_from_files(user):
                         ))
 
     Expense.objects.bulk_create(expenses_to_create)
+
+
+def generate_pdf_report(user, expenses, expense_summary, period):
+    filename = f"{user.username}_expense_report_{period}.pdf"
+    c = canvas.Canvas(filename, pagesize=letter)
+    width, height = letter
+
+    c.setFont("Helvetica", 16)
+    c.drawString(100, height - 50, f"Expense Report for {user.username}")
+
+    c.setFont("Helvetica", 12)
+    c.drawString(100, height - 80, f"Period: {period.capitalize()}")
+
+    c.drawString(100, height - 110, "Expenses by Category:")
+
+    table_data = [["Category", "Amount"]]
+    for category, amount in expense_summary.items():
+        table_data.append([category, f"{amount:.2f}"])
+
+    table = c.beginText(100, height - 140)
+    table.setFont("Helvetica", 10)
+    table.setFillColor(colors.black)
+    for row in table_data:
+        table.textLine(f"{row[0]:<20} {row[1]:>10}")
+
+    c.drawText(table)
+    c.save()
+    return filename

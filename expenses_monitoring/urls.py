@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import index, login, add_api_key, request_consultation, create_goal, expense_analysis, register, \
-    filter_expenses, consultation_list
+    filter_expenses, consultation_list, generate_pdf_report_view
 from django.contrib.auth import views as auth_views
 
 
@@ -13,6 +13,7 @@ urlpatterns = [
     path('create-goal/', create_goal, name='create_goal'),
     path('expense-analysis/', expense_analysis, name='expense_analysis'),
     path('filter-expenses/', filter_expenses, name='filter_expenses'),
+    path('generate-pdf-report/', generate_pdf_report_view, name='generate_pdf_report'),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),

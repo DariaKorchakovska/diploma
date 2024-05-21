@@ -1,18 +1,19 @@
 # Description: This file contains the views for the expenses_monitoring app.
 import logging
 import threading
-from datetime import datetime, timedelta
 
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login
 from .forms import RegisterForm, LoginForm, ApiKeyForm, ConsultationForm, GoalForm, ConsultationAPPForm
-
+from datetime import datetime, timedelta
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-from .lib import fetch_and_update_expenses, sync_user_accounts, get_previous_month_time_bounds, get_latest_bounds, \
-    load_expenses_from_files
+from .lib import  sync_user_accounts, get_previous_month_time_bounds, get_latest_bounds, \
+    load_expenses_from_files, generate_pdf_report
 from .models import Goal, Consultation, Expense
+import os
+from django.http import FileResponse
 
 log = logging.getLogger(__name__)
 
@@ -129,7 +130,6 @@ def create_goal(request):
     return render(request, 'create_goal.html', {'form': form})
 
 
-from datetime import datetime, timedelta
 
 @login_required
 def filter_expenses(request):
@@ -176,39 +176,13 @@ def filter_expenses(request):
             expense_summary_last_year[expense.expense_type] = 0
         expense_summary_last_year[expense.expense_type] += expense.amount
 
+    pdf_url = f"/generate-pdf-report/?period={period}"
+
     return JsonResponse({
         'expense_summary': expense_summary,
-        'expense_summary_last_year': expense_summary_last_year
+        'expense_summary_last_year': expense_summary_last_year,
+        'pdf_url': pdf_url
     })
-
-#
-# @login_required
-# def filter_expenses(request):
-#     user = request.user
-#     period = request.GET.get('period')
-#
-#     now = datetime.now()
-#     if period == 'week':
-#         start_date = now - timedelta(days=now.weekday())
-#     elif period == 'month':
-#         start_date = datetime(now.year, now.month, 1)
-#     elif period == 'year':
-#         start_date = datetime(now.year, 1, 1)
-#     else:
-#         start_date = now - timedelta(days=7)
-#
-#     start_timestamp = int(start_date.timestamp())
-#     end_timestamp = int(now.timestamp())
-#
-#     expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
-#     expense_summary = {}
-#
-#     for expense in expenses:
-#         if expense.expense_type not in expense_summary:
-#             expense_summary[expense.expense_type] = 0
-#         expense_summary[expense.expense_type] += expense.amount
-#
-#     return JsonResponse({'expense_summary': expense_summary})
 
 
 @login_required
@@ -242,3 +216,37 @@ def consultation_list(request):
         'consultations': consultations,
     }
     return render(request, 'consultation_list.html', context)
+
+
+
+@login_required
+def generate_pdf_report_view(request):
+    user = request.user
+    period = request.GET.get('period')
+
+    now = datetime.now()
+    if period == 'week':
+        start_date = now - timedelta(days=now.weekday())
+    elif period == 'month':
+        start_date = datetime(now.year, now.month, 1)
+    elif period == 'year':
+        start_date = datetime(now.year, 1, 1)
+    else:
+        start_date = now - timedelta(days=7)
+
+    start_timestamp = int(start_date.timestamp())
+    end_timestamp = int(now.timestamp())
+
+    expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
+
+    expense_summary = {}
+    for expense in expenses:
+        if expense.expense_type not in expense_summary:
+            expense_summary[expense.expense_type] = 0
+        expense_summary[expense.expense_type] += expense.amount
+
+    filename = generate_pdf_report(user, expenses, expense_summary, period)
+    response = FileResponse(open(filename, 'rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(filename)}"'
+
+    return response
