@@ -218,9 +218,9 @@ def generate_pdf_report(user, expenses, expense_summary, period):
 
     for row in table_data:
         c.drawString(x_offset, y_offset, row[0])
-        c.drawRightString(x_offset + 200, y_offset, row[1])
+        c.drawRightString(x_offset + 250, y_offset, row[1])
         y_offset -= line_height
-        c.line(x_offset, y_offset, x_offset + 200, y_offset)
+        c.line(x_offset, y_offset, x_offset + 250, y_offset)
 
     c.save()
     return filename
