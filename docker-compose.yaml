@@ -9,6 +9,8 @@ services:
     volumes:
       - ./data:/app/data
       - ./staticfiles:/app/staticfiles
+      - ./static:/app/static
+      - ./expenses_monitoring/migrations:/app/expenses_monitoring/migrations
     command: gunicorn --log-level info --workers 3 --timeout 1200 --bind :8000 exp_d.wsgi:application
 
 volumes:

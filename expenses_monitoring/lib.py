@@ -86,7 +86,6 @@ def sync_user_accounts(user):
 
 
 
-
 def get_latest_expense_timestamp():
     """
     Get the timestamp of the latest expense in the database.
