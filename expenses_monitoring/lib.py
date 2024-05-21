@@ -178,14 +178,16 @@ def load_expenses_from_files(user):
                 with open(file_path, 'r', encoding='utf-8') as f:
                     transactions = json.load(f)
                     for transaction in transactions:
-                        expenses_to_create.append(Expense(
-                            user=user,
-                            amount=transaction['amount'] / 100.0,
-                            cash_type=cash_type,
-                            timestamp=transaction['time'],
-                            description=transaction['description'],
-                            expense_type=settings.MMC.get(str(transaction['mcc']), 'Unknown')
-                        ))
+                        amount = transaction['amount'] / 100.0
+                        if amount < 0:  # Exclude positive transactions
+                            expenses_to_create.append(Expense(
+                                user=user,
+                                amount=abs(amount),  # Take the absolute value of negative amounts
+                                cash_type=cash_type,
+                                timestamp=transaction['time'],
+                                description=transaction['description'],
+                                expense_type=settings.MMC.get(str(transaction['mcc']), 'Unknown')
+                            ))
 
     Expense.objects.bulk_create(expenses_to_create)
 
