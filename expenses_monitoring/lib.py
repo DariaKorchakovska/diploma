@@ -197,10 +197,10 @@ def generate_pdf_report(user, expenses, expense_summary, period):
 
     # Register the DejaVu Sans font
     pdfmetrics.registerFont(TTFont('roboto', 'data/roboto.ttf'))
-    c.setFont("DejaVuSans", 16)
+    c.setFont("roboto", 16)
     c.drawString(100, height - 50, f"Expense Report for {user.username}")
 
-    c.setFont("DejaVuSans", 12)
+    c.setFont("roboto", 12)
     c.drawString(100, height - 80, f"Period: {period.capitalize()}")
 
     c.drawString(100, height - 110, "Expenses by Category:")
@@ -209,7 +209,7 @@ def generate_pdf_report(user, expenses, expense_summary, period):
     for category, amount in expense_summary.items():
         table_data.append([category, f"{amount:.2f}"])
 
-    c.setFont("DejaVuSans", 10)
+    c.setFont("roboto", 10)
     x_offset = 100
     y_offset = height - 140
     line_height = 15
