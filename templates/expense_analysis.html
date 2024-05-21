@@ -14,7 +14,11 @@
     </div>
     <div style="align-self: flex-end;">
         <h4>Діаграма витрат</h4>
-        <canvas style="width: 95%;" id="expense-chart"></canvas>
+        <canvas style="width: 95%;" id="expense-pie-chart"></canvas>
+    </div>
+    <div style="align-self: flex-end;">
+        <h4>Порівняння витрат за категоріями з попереднім роком</h4>
+        <canvas style="width: 95%;" id="expense-bar-chart"></canvas>
     </div>
 </div>
 {% endblock %}
@@ -29,14 +33,16 @@ document.getElementById('filter-form').addEventListener('submit', function(event
         .then(response => response.json())
         .then(data => {
             const expenseSummary = data.expense_summary;
+            const expenseSummaryLastYear = data.expense_summary_last_year;
             const labels = Object.keys(expenseSummary);
             const values = Object.values(expenseSummary);
+            const lastYearValues = labels.map(label => expenseSummaryLastYear[label] || 0);
 
-            const ctx = document.getElementById('expense-chart').getContext('2d');
-            if (window.expenseChart) {
-                window.expenseChart.destroy();
+            const ctxPie = document.getElementById('expense-pie-chart').getContext('2d');
+            if (window.expensePieChart) {
+                window.expensePieChart.destroy();
             }
-            window.expenseChart = new Chart(ctx, {
+            window.expensePieChart = new Chart(ctxPie, {
                 type: 'pie',
                 data: {
                     labels: labels,
@@ -73,11 +79,134 @@ document.getElementById('filter-form').addEventListener('submit', function(event
                     }
                 }
             });
+
+            const ctxBar = document.getElementById('expense-bar-chart').getContext('2d');
+            if (window.expenseBarChart) {
+                window.expenseBarChart.destroy();
+            }
+            window.expenseBarChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Поточний рік',
+                            data: values,
+                            backgroundColor: 'rgba(54,162,235,0.56)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Попередній рік',
+                            data: lastYearValues,
+                            backgroundColor: 'rgba(255,99,132,0.41)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
         });
 });
 </script>
 {% endblock %}
 
+
+{#{% extends "base.html" %}#}
+{#{% block content %}#}
+{#<div style="display: block; width: 50%; padding: 20px;">#}
+{#    <div style="align-self: flex-start; margin-bottom: 20px;">#}
+{#        <h4>Оберіть період часу для аналізу:</h4>#}
+{#        <form id="filter-form" style="display: flex; flex-direction: column;">#}
+{#            <select name="period">#}
+{#                <option value="week">Поточний тиждень</option>#}
+{#                <option value="month">Поточний місяць</option>#}
+{#                <option value="year">Цей рік</option>#}
+{#            </select>#}
+{#            <button class="filter-categories">Фільтрувати по категоріям</button>#}
+{#        </form>#}
+{#    </div>#}
+{#    <div style="align-self: flex-end;">#}
+{#        <h4>Діаграма витрат</h4>#}
+{#        <canvas style="width: 95%;" id="expense-chart"></canvas>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>#}
+{#<script>#}
+{#document.getElementById('filter-form').addEventListener('submit', function(event) {#}
+{#    event.preventDefault();#}
+{#    const period = document.querySelector('select[name="period"]').value;#}
+{#    fetch(`/filter-expenses/?period=${period}`)#}
+{#        .then(response => response.json())#}
+{#        .then(data => {#}
+{#            const expenseSummary = data.expense_summary;#}
+{#            const labels = Object.keys(expenseSummary);#}
+{#            const values = Object.values(expenseSummary);#}
+{##}
+{#            const ctx = document.getElementById('expense-chart').getContext('2d');#}
+{#            if (window.expenseChart) {#}
+{#                window.expenseChart.destroy();#}
+{#            }#}
+{#            window.expenseChart = new Chart(ctx, {#}
+{#                type: 'pie',#}
+{#                data: {#}
+{#                    labels: labels,#}
+{#                    datasets: [{#}
+{#                        label: 'Витрати за типами',#}
+{#                        data: values,#}
+{#                        backgroundColor: [#}
+{#                            'rgba(255,99,132,0.41)',#}
+{#                            'rgba(54,162,235,0.56)',#}
+{#                            'rgba(255,206,86,0.44)',#}
+{#                            'rgba(75,192,192,0.52)',#}
+{#                            'rgba(153,102,255,0.65)',#}
+{#                            'rgba(255,159,64,0.51)'#}
+{#                        ],#}
+{#                        borderColor: [#}
+{#                            'rgba(255, 99, 132, 1)',#}
+{#                            'rgba(54, 162, 235, 1)',#}
+{#                            'rgba(255, 206, 86, 1)',#}
+{#                            'rgba(75, 192, 192, 1)',#}
+{#                            'rgba(153, 102, 255, 1)',#}
+{#                            'rgba(255, 159, 64, 1)'#}
+{#                        ],#}
+{#                        borderWidth: 1#}
+{#                    }]#}
+{#                },#}
+{#                options: {#}
+{#                    responsive: true,#}
+{#                    maintainAspectRatio: true,#}
+{#                    aspectRatio: 2,#}
+{#                    plugins: {#}
+{#                        legend: {#}
+{#                            position: 'right'#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{#        });#}
+{#});#}
+{#</script>#}
+{#{% endblock %}#}
+{##}
 {#{% extends "base.html" %}#}
 {#{% block content %}#}
 {#<div>#}

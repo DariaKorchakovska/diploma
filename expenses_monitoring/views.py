@@ -129,6 +129,8 @@ def create_goal(request):
     return render(request, 'create_goal.html', {'form': form})
 
 
+from datetime import datetime, timedelta
+
 @login_required
 def filter_expenses(request):
     user = request.user
@@ -137,25 +139,76 @@ def filter_expenses(request):
     now = datetime.now()
     if period == 'week':
         start_date = now - timedelta(days=now.weekday())
+        start_date_last_year = start_date - timedelta(weeks=52)
+        end_date_last_year = now - timedelta(weeks=52)
     elif period == 'month':
         start_date = datetime(now.year, now.month, 1)
+        start_date_last_year = datetime(now.year - 1, now.month, 1)
+        end_date_last_year = start_date_last_year + timedelta(days=31)
+        end_date_last_year = end_date_last_year.replace(day=1) - timedelta(seconds=1)
     elif period == 'year':
         start_date = datetime(now.year, 1, 1)
+        start_date_last_year = datetime(now.year - 1, 1, 1)
+        end_date_last_year = datetime(now.year - 1, 12, 31)
     else:
         start_date = now - timedelta(days=7)
+        start_date_last_year = start_date - timedelta(weeks=52)
+        end_date_last_year = now - timedelta(weeks=52)
 
     start_timestamp = int(start_date.timestamp())
     end_timestamp = int(now.timestamp())
+    start_timestamp_last_year = int(start_date_last_year.timestamp())
+    end_timestamp_last_year = int(end_date_last_year.timestamp())
 
     expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
+    expenses_last_year = Expense.objects.filter(user=user, timestamp__gte=start_timestamp_last_year, timestamp__lte=end_timestamp_last_year)
+
     expense_summary = {}
+    expense_summary_last_year = {}
 
     for expense in expenses:
         if expense.expense_type not in expense_summary:
             expense_summary[expense.expense_type] = 0
         expense_summary[expense.expense_type] += expense.amount
 
-    return JsonResponse({'expense_summary': expense_summary})
+    for expense in expenses_last_year:
+        if expense.expense_type not in expense_summary_last_year:
+            expense_summary_last_year[expense.expense_type] = 0
+        expense_summary_last_year[expense.expense_type] += expense.amount
+
+    return JsonResponse({
+        'expense_summary': expense_summary,
+        'expense_summary_last_year': expense_summary_last_year
+    })
+
+#
+# @login_required
+# def filter_expenses(request):
+#     user = request.user
+#     period = request.GET.get('period')
+#
+#     now = datetime.now()
+#     if period == 'week':
+#         start_date = now - timedelta(days=now.weekday())
+#     elif period == 'month':
+#         start_date = datetime(now.year, now.month, 1)
+#     elif period == 'year':
+#         start_date = datetime(now.year, 1, 1)
+#     else:
+#         start_date = now - timedelta(days=7)
+#
+#     start_timestamp = int(start_date.timestamp())
+#     end_timestamp = int(now.timestamp())
+#
+#     expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
+#     expense_summary = {}
+#
+#     for expense in expenses:
+#         if expense.expense_type not in expense_summary:
+#             expense_summary[expense.expense_type] = 0
+#         expense_summary[expense.expense_type] += expense.amount
+#
+#     return JsonResponse({'expense_summary': expense_summary})
 
 
 @login_required
