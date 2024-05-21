@@ -1,7 +1,10 @@
+import json
+import os
 import time
 from datetime import datetime, timedelta, timezone
 import logging
 
+from exp_d import settings
 from exp_d.settings import MMC
 from django.db import transaction
 import requests
@@ -153,3 +156,30 @@ def get_latest_bounds():
     if latest_timestamp is None:
         return get_current_month_time_bounds()
     return latest_timestamp, current_time
+
+
+def load_expenses_from_files(user):
+    """
+    Load expenses from JSON files and save them to the database for the given user.
+    """
+    data_directory = os.path.join(settings.BASE_DIR, 'data', 'statements')
+    cash_type = CashType.objects.get(name='UAH')
+    expenses_to_create = []
+
+    for root, dirs, files in os.walk(data_directory):
+        for file in files:
+            if file.endswith('.json'):
+                file_path = os.path.join(root, file)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    transactions = json.load(f)
+                    for transaction in transactions:
+                        expenses_to_create.append(Expense(
+                            user=user,
+                            amount=transaction['amount'] / 100.0,
+                            cash_type=cash_type,
+                            timestamp=transaction['time'],
+                            description=transaction['description'],
+                            expense_type=settings.MMC.get(str(transaction['mcc']), 'Unknown')
+                        ))
+
+    Expense.objects.bulk_create(expenses_to_create)

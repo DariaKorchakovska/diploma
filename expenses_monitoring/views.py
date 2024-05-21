@@ -10,7 +10,8 @@ from .forms import RegisterForm, LoginForm, ApiKeyForm, ConsultationForm, GoalFo
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-from .lib import fetch_and_update_expenses, sync_user_accounts, get_previous_month_time_bounds, get_latest_bounds
+from .lib import fetch_and_update_expenses, sync_user_accounts, get_previous_month_time_bounds, get_latest_bounds, \
+    load_expenses_from_files
 from .models import Goal, Consultation, Expense
 
 log = logging.getLogger(__name__)
@@ -160,10 +161,11 @@ def filter_expenses(request):
 @login_required
 def expense_analysis(request):
     # fetch_and_update_expenses(request.user.id)
-    start_of_current_month, current_time = get_latest_bounds()
-    thread = threading.Thread(target=fetch_and_update_expenses,
-                              args=(request.user.id, start_of_current_month, current_time))
-    thread.start()
+    # start_of_current_month, current_time = get_latest_bounds()
+    # thread = threading.Thread(target=fetch_and_update_expenses,
+    #                           args=(request.user.id, start_of_current_month, current_time))
+    # thread.start()
+    load_expenses_from_files(request.user)
     return render(request, 'expense_analysis.html')
 
 
