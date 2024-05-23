@@ -1,10 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Введення фінансової цілі</h2>
-<p>Приклади: "Купівля нового авто" або "Накопичення на відпустку"</p>
+<h2>Встановлення цілі</h2>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Додати ціль</button>
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Зберегти ціль</button>
 </form>
 {% endblock %}
+

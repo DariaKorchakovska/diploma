@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-from .lib import  sync_user_accounts, get_previous_month_time_bounds, get_latest_bounds, \
-    load_expenses_from_files, generate_pdf_report
+from .lib import sync_user_accounts, get_previous_month_time_bounds, get_latest_bounds, \
+    load_expenses_from_files, generate_pdf_report, fetch_and_update_expenses
 from .models import Goal, Consultation, Expense
 import os
 from django.http import FileResponse
@@ -187,13 +187,14 @@ def filter_expenses(request):
 
 @login_required
 def expense_analysis(request):
-    # fetch_and_update_expenses(request.user.id)
-    # start_of_current_month, current_time = get_latest_bounds()
-    # thread = threading.Thread(target=fetch_and_update_expenses,
-    #                           args=(request.user.id, start_of_current_month, current_time))
-    # thread.start()
-    if Expense.objects.filter(user=request.user).count() == 0:
-        load_expenses_from_files(request.user)
+    user = request.user
+    if Expense.objects.filter(user=user).count() == 0:
+        load_expenses_from_files(user)
+
+    start_of_current_month, current_time = get_latest_bounds()
+    thread = threading.Thread(target=fetch_and_update_expenses, args=(user.id, start_of_current_month, current_time))
+    thread.start()
+
     return render(request, 'expense_analysis.html')
 
 
