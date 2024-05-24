@@ -155,7 +155,7 @@ def load_expenses_from_files(user):
     """
     Load expenses from JSON files and save them to the database for the given user.
     """
-    data_directory = str(os.path.join(settings.BASE_DIR, 'data', 'statements', user.name))
+    data_directory = str(os.path.join(settings.BASE_DIR, 'data', 'statements', user.username))
     cash_type = CashType.objects.get(name='UAH')
     expenses_to_create = []
 
