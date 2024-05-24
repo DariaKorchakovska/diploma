@@ -6,13 +6,13 @@
     {{ form.as_p }}
     {% if form.errors %}
         <div class="alert alert-danger">
-            <ul>
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                {% endfor %}
-            </ul>
+{#            <ul>#}
+{#                {% for field, errors in form.errors.items %}#}
+{#                    {% for error in errors %}#}
+{#                        <li>{{ error }}</li>#}
+{#                    {% endfor %}#}
+{#                {% endfor %}#}
+{#            </ul>#}
         </div>
     {% endif %}
     <button type="submit" class="btn btn-primary">Зберегти ціль</button>
