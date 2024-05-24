@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Expenses Monitoring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    
     <style>
         :root {
             --bg: #ffffff; 
@@ -117,6 +119,7 @@
 <body>
 <header>
     <div class="user-info">
+        <i class="fas fa-user"></i>
         <span>{% if user.is_authenticated %}{{ user.username }}{% else %}Гість{% endif %}</span>
     </div>
     <h1>Personal Expenses Monitoring</h1>
@@ -179,18 +182,24 @@
     </div>
     <footer>
     <span>
-        <span>monitoring.expences@gmail.com</span>
-        <span> +38 000 000 000 0</span>
+         <i class="fas fa-envelope"></i><span> monitoring.expences@gmail.com</span>
+         <i class="fas fa-phone"></i><span> +38 000 000 000 0</span>
     </span>
         <span>
             {% if user.is_authenticated %}
                 <form action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
-                        <button type="submit" class="logout">Вийти</button>
+                        <button type="submit" class="logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Вийти
+                        </button>
                 </form>
             {% else %}
                 <form action="{% url 'login' %}" method="get">
-                    <button type="submit" class="logout">Увійти</button>
+                    <button type="submit" class="logout">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Увійти
+                    </button>
                 </form>
             {% endif %}</span>
     </footer>
