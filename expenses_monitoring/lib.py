@@ -22,30 +22,32 @@ log = logging.getLogger(__name__)
 
 
 def fetch_and_update_expenses(user, from_time, to_time):
-    """ Fetch and update expenses from the MonoBank API. """
+    """Fetch and update expenses from the MonoBank API."""
 
     accounts = user.accounts
-    base_url = 'https://api.monobank.ua/personal/statement'
+    base_url = "https://api.monobank.ua/personal/statement"
 
     expenses_to_create = []
     for account in accounts:
         log.info(f"Fetching transactions for account {account}")
         time.sleep(61)
         url = f"{base_url}/{account}/{from_time}/{to_time}"
-        response = requests.get(url, headers={'X-Token': user.api_key})
+        response = requests.get(url, headers={"X-Token": user.api_key})
         response.raise_for_status()  # Ensure that the request was successful
 
         users_transactions = response.json()
         log.info(f"Transactions: {users_transactions}")
         for users_transaction in users_transactions:
-            expenses_to_create.append(Expense(
-                user=user,
-                amount=users_transaction['amount'] / 100.0,
-                cash_type=CashType.objects.get(name='UAH'),
-                timestamp=users_transaction['time'],
-                description=users_transaction['description'],
-                expense_type=MMC.get(str(users_transaction['mcc']))
-            ))
+            expenses_to_create.append(
+                Expense(
+                    user=user,
+                    amount=users_transaction["amount"] / 100.0,
+                    cash_type=CashType.objects.get(name="UAH"),
+                    timestamp=users_transaction["time"],
+                    description=users_transaction["description"],
+                    expense_type=MMC.get(str(users_transaction["mcc"])),
+                )
+            )
             log.info(f"Expenses to create: {expenses_to_create}")
 
     if expenses_to_create:
@@ -54,34 +56,38 @@ def fetch_and_update_expenses(user, from_time, to_time):
 
 
 def fetch_client_info(api_key):
-    """ Fetch the client information from the MonoBank API. """
+    """Fetch the client information from the MonoBank API."""
     url = "https://api.monobank.ua/personal/client-info"
-    headers = {'X-Token': api_key}
+    headers = {"X-Token": api_key}
     response = requests.get(url, headers=headers)
     response.raise_for_status()  # Raises an HTTPError for bad requests
     return response.json()
 
 
 def update_or_create_accounts(user, data):
-    """ Update or create accounts based on fetched API data. """
+    """Update or create accounts based on fetched API data."""
 
-    if 'accounts' in data:
+    if "accounts" in data:
         with transaction.atomic():
-            for account_data in data['accounts']:
+            for account_data in data["accounts"]:
                 account, created = Account.objects.update_or_create(
                     user=user,
-                    account_id=account_data['id'],  # Use the account ID to identify the account
+                    account_id=account_data[
+                        "id"
+                    ],  # Use the account ID to identify the account
                     defaults={
-                        'maskedPan': account_data['maskedPan'][0] if account_data.get('maskedPan') else '',
-                        'iban': account_data['iban'],
-                        'currencyCode': account_data['currencyCode'],
-                        'balance': account_data['balance']
-                    }
+                        "maskedPan": account_data["maskedPan"][0]
+                        if account_data.get("maskedPan")
+                        else "",
+                        "iban": account_data["iban"],
+                        "currencyCode": account_data["currencyCode"],
+                        "balance": account_data["balance"],
+                    },
                 )
 
 
 def sync_user_accounts(user):
-    """ Synchronize the user's bank accounts with the MonoBank API. """
+    """Synchronize the user's bank accounts with the MonoBank API."""
     try:
         client_info = fetch_client_info(user.api_key)
         log.info(f"Fetched client info: {client_info}")
@@ -93,16 +99,14 @@ def sync_user_accounts(user):
         log.error(f"An error occurred while updating accounts: {str(e)}")
 
 
-
 def get_latest_expense_timestamp():
     """
     Get the timestamp of the latest expense in the database.
     Returns:
         The timestamp of the latest expense as a datetime object, or None if there are no expenses.
     """
-    latest_expense = Expense.objects.order_by('-timestamp').first()
+    latest_expense = Expense.objects.order_by("-timestamp").first()
     return latest_expense.timestamp if latest_expense else None
-
 
 
 def get_previous_month_time_bounds():
@@ -116,13 +120,15 @@ def get_previous_month_time_bounds():
     first_day_of_current_month = datetime(now.year, now.month, 1)
     first_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
     first_day_of_previous_month = datetime(
-        first_day_of_previous_month.year,
-        first_day_of_previous_month.month,
-        1
+        first_day_of_previous_month.year, first_day_of_previous_month.month, 1
     )
     last_day_of_previous_month = first_day_of_current_month - timedelta(seconds=1)
-    start_of_previous_month = int(first_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp())
-    end_of_previous_month = int(last_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp())
+    start_of_previous_month = int(
+        first_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp()
+    )
+    end_of_previous_month = int(
+        last_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp()
+    )
 
     return start_of_previous_month, end_of_previous_month
 
@@ -135,7 +141,9 @@ def get_current_month_time_bounds():
     """
     now = datetime.now()
     first_day_of_current_month = datetime(now.year, now.month, 1)
-    start_of_current_month = int(first_day_of_current_month.replace(tzinfo=timezone.utc).timestamp())
+    start_of_current_month = int(
+        first_day_of_current_month.replace(tzinfo=timezone.utc).timestamp()
+    )
     current_time = int(now.replace(tzinfo=timezone.utc).timestamp())
 
     return start_of_current_month, current_time
@@ -151,35 +159,49 @@ def get_latest_bounds():
     current_time = int(datetime.now().timestamp())
     if latest_timestamp is None:
         return get_current_month_time_bounds()
-    return int(latest_timestamp.replace(tzinfo=timezone.utc).timestamp()), current_time
 
+    # Assuming latest_timestamp can be a datetime object or an integer timestamp
+    if isinstance(latest_timestamp, datetime):
+        latest_timestamp = int(
+            latest_timestamp.replace(tzinfo=timezone.utc).timestamp()
+        )
+
+    return latest_timestamp, current_time
 
 
 def load_expenses_from_files(user):
     """
     Load expenses from JSON files and save them to the database for the given user.
     """
-    data_directory = os.path.join(settings.BASE_DIR, 'data', 'statements', user.username)
-    cash_type = CashType.objects.get(name='UAH')
+    data_directory = os.path.join(
+        settings.BASE_DIR, "data", "statements", user.username
+    )
+    cash_type = CashType.objects.get(name="UAH")
     expenses_to_create = []
 
     for root, dirs, files in os.walk(data_directory):
         for file in files:
-            if file.endswith('.json'):
+            if file.endswith(".json"):
                 file_path = os.path.join(root, file)
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     transactions = json.load(f)
                     for transaction in transactions:
-                        amount = transaction['amount'] / 100.0
+                        amount = transaction["amount"] / 100.0
                         if amount < 0:  # Exclude positive transactions
-                            expenses_to_create.append(Expense(
-                                user=user,
-                                amount=abs(amount),  # Take the absolute value of negative amounts
-                                cash_type=cash_type,
-                                timestamp=transaction['time'],
-                                description=transaction['description'],
-                                expense_type=settings.MMC.get(str(transaction['mcc']), 'Unknown')
-                            ))
+                            expenses_to_create.append(
+                                Expense(
+                                    user=user,
+                                    amount=abs(
+                                        amount
+                                    ),  # Take the absolute value of negative amounts
+                                    cash_type=cash_type,
+                                    timestamp=transaction["time"],
+                                    description=transaction["description"],
+                                    expense_type=settings.MMC.get(
+                                        str(transaction["mcc"]), "Unknown"
+                                    ),
+                                )
+                            )
 
     if expenses_to_create:
         Expense.objects.bulk_create(expenses_to_create)
@@ -191,7 +213,7 @@ def generate_pdf_report(user, expenses, expense_summary, period):
     width, height = letter
 
     # Register the DejaVu Sans font
-    pdfmetrics.registerFont(TTFont('roboto', 'data/roboto.ttf'))
+    pdfmetrics.registerFont(TTFont("roboto", "data/roboto.ttf"))
     c.setFont("roboto", 16)
     c.drawString(100, height - 50, f"Expense Report for {user.username}")
 

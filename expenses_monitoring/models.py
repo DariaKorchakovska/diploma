@@ -4,14 +4,18 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-
 class CustomUser(AbstractUser):
     """
     Custom user model with additional fields.
     """
+
     @property
     def api_key(self):
-        return self.bankconnection.first().api_key if self.bankconnection.exists() else None
+        return (
+            self.bankconnection.first().api_key
+            if self.bankconnection.exists()
+            else None
+        )
 
     @property
     def accounts(self):
@@ -30,7 +34,7 @@ class CashType(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['name']),  # Index on name for filtering by name
+            models.Index(fields=["name"]),  # Index on name for filtering by name
         ]
 
 
@@ -43,16 +47,20 @@ class Goal(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['user']),  # Single index on user if filtering by user alone is common
+            models.Index(
+                fields=["user"]
+            ),  # Single index on user if filtering by user alone is common
         ]
 
 
 class BankConnection(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='bankconnection')
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name="bankconnection"
+    )
     api_key = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = ['user', 'api_key']
+        unique_together = ["user", "api_key"]
 
 
 class Account(models.Model):
@@ -62,7 +70,9 @@ class Account(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['user']),  # Single index on user if filtering by user alone is common
+            models.Index(
+                fields=["user"]
+            ),  # Single index on user if filtering by user alone is common
         ]
 
     def __str__(self):
@@ -70,29 +80,32 @@ class Account(models.Model):
 
 
 class Expense(models.Model):
-    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)  # Assuming 'CustomUser' is correctly defined elsewhere
+    user = models.ForeignKey(
+        "CustomUser", on_delete=models.CASCADE
+    )  # Assuming 'CustomUser' is correctly defined elsewhere
     amount = models.FloatField()
-    cash_type = models.ForeignKey('CashType', on_delete=models.CASCADE)
+    cash_type = models.ForeignKey("CashType", on_delete=models.CASCADE)
     timestamp = models.BigIntegerField(default=datetime.now().timestamp())
     description = models.TextField()
     expense_type = models.CharField(max_length=100)
 
     class Meta:
         indexes = [
-            models.Index(fields=['timestamp']),  # Corrected from 'date' to 'timestamp'
-            models.Index(fields=['user']),
-            models.Index(fields=['expense_type']),
+            models.Index(fields=["timestamp"]),  # Corrected from 'date' to 'timestamp'
+            models.Index(fields=["user"]),
+            models.Index(fields=["expense_type"]),
         ]
 
     @property
     def readable_date(self):
         """Return a formatted datetime string from the timestamp."""
-        return datetime.utcfromtimestamp(self.timestamp).strftime('%Y-%m-%d %H:%M:%S')
-
+        return datetime.utcfromtimestamp(self.timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
     def __str__(self):
-        return (f"Expense: {self.amount} {self.cash_type} - {self.readable_date} "
-                f"- {self.expense_type} - {self.description} - {self.user}")
+        return (
+            f"Expense: {self.amount} {self.cash_type} - {self.readable_date} "
+            f"- {self.expense_type} - {self.description} - {self.user}"
+        )
 
 
 class Consultation(models.Model):
@@ -103,9 +116,15 @@ class Consultation(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['date']),  # Index on date for filtering or sorting by date
-            models.Index(fields=['user']),  # Single index on user if filtering by user alone is common
+            models.Index(
+                fields=["date"]
+            ),  # Index on date for filtering or sorting by date
+            models.Index(
+                fields=["user"]
+            ),  # Single index on user if filtering by user alone is common
         ]
 
     def __str__(self):
-        return f"Consultation: {self.user} - {self.date} - {self.time} - {self.approved}"
+        return (
+            f"Consultation: {self.user} - {self.date} - {self.time} - {self.approved}"
+        )

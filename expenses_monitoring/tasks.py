@@ -12,17 +12,16 @@ log = logging.getLogger(__name__)
 
 
 def fetch_and_update_expenses(user_id, from_time, to_time):
-
     user = CustomUser.objects.get(id=user_id)
     accounts = user.accounts
-    base_url = 'https://api.monobank.ua/personal/statement'
+    base_url = "https://api.monobank.ua/personal/statement"
 
     expenses_to_create = []
     for account in accounts:
         log.info(f"Fetching transactions for account {account}")
         time.sleep(61)
         url = f"{base_url}/{account}/{from_time}/{to_time}"
-        response = requests.get(url, headers={'X-Token': user.api_key})
+        response = requests.get(url, headers={"X-Token": user.api_key})
         response.raise_for_status()  # Ensure that the request was successful
 
         transactions = response.json()
@@ -33,14 +32,16 @@ def fetch_and_update_expenses(user_id, from_time, to_time):
             # if not transaction['hold']:
             # if transaction['currencyCode'] != '980' or transaction['hold']:
             #     log.debug(f"Skipping transaction {transaction['id']} due to filters")
-            expenses_to_create.append(Expense(
-                user=user,
-                amount=transaction['amount'] / 100.0,
-                cash_type=CashType.objects.get(name='UAH'),
-                timestamp=transaction['time'],
-                description=transaction['description'],
-                expense_type='card_transaction'
-            ))
+            expenses_to_create.append(
+                Expense(
+                    user=user,
+                    amount=transaction["amount"] / 100.0,
+                    cash_type=CashType.objects.get(name="UAH"),
+                    timestamp=transaction["time"],
+                    description=transaction["description"],
+                    expense_type="card_transaction",
+                )
+            )
             log.info(f"Transaction {transaction['id']} added to the list of expenses")
     log.info(f"Expenses to create: {expenses_to_create}")
     Expense.objects.bulk_create(expenses_to_create)
@@ -52,17 +53,19 @@ def convert_request_to_expense(expenses, user, uah):
     result = []
     for expanse in expenses:
         log.info(f"Expanse: {expanse}")
-        if int(expanse['currencyCode']) != 980:
+        if int(expanse["currencyCode"]) != 980:
             continue
-        if expanse['amount'] > 0:
-            result.append({
-                'user': user,
-                'amount': expanse['amount'],
-                'cash_type': uah,
-                'timestamp': expanse['time'],
-                'description': expanse['description'],
-                'expense_type': expanse['mcc']
-            })
+        if expanse["amount"] > 0:
+            result.append(
+                {
+                    "user": user,
+                    "amount": expanse["amount"],
+                    "cash_type": uah,
+                    "timestamp": expanse["time"],
+                    "description": expanse["description"],
+                    "expense_type": expanse["mcc"],
+                }
+            )
     return result
 
 
