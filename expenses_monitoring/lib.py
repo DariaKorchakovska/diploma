@@ -21,6 +21,36 @@ from expenses_monitoring.models import CashType, Expense, CustomUser, Account
 log = logging.getLogger(__name__)
 
 
+def fetch_and_update_expenses(user, from_time, to_time):
+    """ Fetch and update expenses from the MonoBank API. """
+
+    accounts = user.accounts
+    base_url = 'https://api.monobank.ua/personal/statement'
+
+    expenses_to_create = []
+    for account in accounts:
+        log.info(f"Fetching transactions for account {account}")
+        time.sleep(61)
+        url = f"{base_url}/{account}/{from_time}/{to_time}"
+        response = requests.get(url, headers={'X-Token': user.api_key})
+        response.raise_for_status()  # Ensure that the request was successful
+
+        users_transactions = response.json()
+        log.info(f"Transactions: {users_transactions}")
+        for users_transaction in users_transactions:
+            expenses_to_create.append(Expense(
+                user=user,
+                amount=users_transaction['amount'] / 100.0,
+                cash_type=CashType.objects.get(name='UAH'),
+                timestamp=users_transaction['time'],
+                description=users_transaction['description'],
+                expense_type=MMC.get(str(users_transaction['mcc']))
+            ))
+
+    if expenses_to_create:
+        Expense.objects.bulk_create(expenses_to_create)
+        log.info(f"Expenses updated for user {user.username}")
+
 
 def fetch_client_info(api_key):
     """ Fetch the client information from the MonoBank API. """
@@ -125,7 +155,7 @@ def load_expenses_from_files(user):
     """
     Load expenses from JSON files and save them to the database for the given user.
     """
-    data_directory = os.path.join(settings.BASE_DIR, 'statements', user.username)
+    data_directory = str(os.path.join(settings.BASE_DIR, 'data', 'statements', user.name))
     cash_type = CashType.objects.get(name='UAH')
     expenses_to_create = []
 
@@ -137,12 +167,12 @@ def load_expenses_from_files(user):
                     transactions = json.load(f)
                     for transaction in transactions:
                         amount = transaction['amount'] / 100.0
-                        if amount < 0:
+                        if amount < 0:  # Exclude positive transactions
                             expenses_to_create.append(Expense(
                                 user=user,
-                                amount=abs(amount),
+                                amount=abs(amount),  # Take the absolute value of negative amounts
                                 cash_type=cash_type,
-                                timestamp=datetime.fromtimestamp(transaction['time'], timezone.utc),
+                                timestamp=transaction['time'],
                                 description=transaction['description'],
                                 expense_type=settings.MMC.get(str(transaction['mcc']), 'Unknown')
                             ))
@@ -183,36 +213,3 @@ def generate_pdf_report(user, expenses, expense_summary, period):
 
     c.save()
     return filename
-
-
-def fetch_and_update_expenses(user_id, from_time, to_time):
-    """ Fetch and update expenses from the MonoBank API. """
-    user = CustomUser.objects.get(id=user_id)
-    accounts = user.accounts.all()
-    base_url = 'https://api.monobank.ua/personal/statement'
-
-    expenses_to_create = []
-    for account in accounts:
-        log.info(f"Fetching transactions for account {account.account_id}")
-        time.sleep(61)
-        url = f"{base_url}/{account.account_id}/{from_time}/{to_time}"
-        response = requests.get(url, headers={'X-Token': user.api_key})
-        response.raise_for_status()  # Ensure that the request was successful
-
-        transactions = response.json()
-        log.info(f"Transactions: {transactions}")
-        for transaction in transactions:
-            amount = transaction['amount'] / 100.0
-            expenses_to_create.append(Expense(
-                user=user,
-                amount=amount,
-                cash_type=CashType.objects.get(name='UAH'),
-                timestamp=datetime.fromtimestamp(transaction['time'], timezone.utc),
-                description=transaction['description'],
-                expense_type=settings.MMC.get(str(transaction['mcc']), 'Unknown')
-            ))
-
-    if expenses_to_create:
-        Expense.objects.bulk_create(expenses_to_create)
-        log.info(f"Expenses updated for user {user.username}")
-
