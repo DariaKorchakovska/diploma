@@ -188,13 +188,9 @@ def filter_expenses(request):
 @login_required
 def expense_analysis(request):
     user = request.user
-    if Expense.objects.filter(user=user).count() == 0:
-        load_expenses_from_files(user)
-    # else:
-    #     start_of_current_month, current_time = get_latest_bounds()
-    #     thread = threading.Thread(target=fetch_and_update_expenses, args=(user, start_of_current_month, current_time))
-    #     thread.start()
-
+    start_of_current_month, current_time = get_latest_bounds()
+    thread = threading.Thread(target=fetch_and_update_expenses, args=(user, start_of_current_month, current_time))
+    thread.start()
     return render(request, 'expense_analysis.html')
 
 
