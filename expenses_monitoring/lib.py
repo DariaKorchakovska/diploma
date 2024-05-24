@@ -98,10 +98,11 @@ def get_latest_expense_timestamp():
     """
     Get the timestamp of the latest expense in the database.
     Returns:
-        The timestamp of the latest expense, or None if there are no expenses.
+        The timestamp of the latest expense as a datetime object, or None if there are no expenses.
     """
     latest_expense = Expense.objects.order_by('-timestamp').first()
     return latest_expense.timestamp if latest_expense else None
+
 
 
 def get_previous_month_time_bounds():
@@ -150,7 +151,8 @@ def get_latest_bounds():
     current_time = int(datetime.now().timestamp())
     if latest_timestamp is None:
         return get_current_month_time_bounds()
-    return int(latest_timestamp.timestamp()), current_time
+    return int(latest_timestamp.replace(tzinfo=timezone.utc).timestamp()), current_time
+
 
 
 def load_expenses_from_files(user):
