@@ -46,6 +46,7 @@ def fetch_and_update_expenses(user, from_time, to_time):
                 description=users_transaction['description'],
                 expense_type=MMC.get(str(users_transaction['mcc']))
             ))
+            log.info(f"Expenses to create: {expenses_to_create}")
 
     if expenses_to_create:
         Expense.objects.bulk_create(expenses_to_create)
@@ -132,9 +133,10 @@ def get_current_month_time_bounds():
         A tuple of two integers representing the start and end of the current month.
     """
     now = datetime.now()
-    first_day_of_current_month = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
-    start_of_current_month = int(first_day_of_current_month.timestamp())
-    current_time = int(now.timestamp())
+    first_day_of_current_month = datetime(now.year, now.month, 1)
+    start_of_current_month = int(first_day_of_current_month.replace(tzinfo=timezone.utc).timestamp())
+    current_time = int(now.replace(tzinfo=timezone.utc).timestamp())
+
     return start_of_current_month, current_time
 
 
@@ -155,7 +157,7 @@ def load_expenses_from_files(user):
     """
     Load expenses from JSON files and save them to the database for the given user.
     """
-    data_directory = str(os.path.join(settings.BASE_DIR, 'data', 'statements', user.username))
+    data_directory = os.path.join(settings.BASE_DIR, 'data', 'statements', user.username)
     cash_type = CashType.objects.get(name='UAH')
     expenses_to_create = []
 
