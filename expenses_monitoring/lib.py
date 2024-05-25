@@ -38,17 +38,18 @@ def fetch_and_update_expenses(user, from_time, to_time):
         users_transactions = response.json()
         log.info(f"Transactions: {users_transactions}")
         for users_transaction in users_transactions:
-            expenses_to_create.append(
-                Expense(
-                    user=user,
-                    amount=users_transaction["amount"] / 100.0,
-                    cash_type=CashType.objects.get(name="UAH"),
-                    timestamp=users_transaction["time"],
-                    description=users_transaction["description"],
-                    expense_type=MMC.get(str(users_transaction["mcc"])),
+            if users_transaction["amount"] < 0:
+                expenses_to_create.append(
+                     Expense(
+                        user=user,
+                        amount=abs(users_transaction["amount"] / 100.0),
+                        cash_type=CashType.objects.get(name="UAH"),
+                        timestamp=users_transaction["time"],
+                        description=users_transaction["description"],
+                        expense_type=MMC.get(str(users_transaction["mcc"])),
+                    )
                 )
-            )
-            log.info(f"Expenses to create: {expenses_to_create}")
+                log.info(f"Expenses to create: {expenses_to_create}")
 
     if expenses_to_create:
         Expense.objects.bulk_create(expenses_to_create)
