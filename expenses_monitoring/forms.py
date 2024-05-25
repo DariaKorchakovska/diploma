@@ -16,35 +16,42 @@ from .models import BankConnection, Consultation, Goal
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
+        label="Електронна пошта",
         validators=[
-            EmailValidator(message="Введите правильный адрес электронной почты.")
+            EmailValidator(message="Введіть правильну адресу електронної пошти.")
         ],
     )
 
     password1 = forms.CharField(
-        label="Password",
+        label="Пароль",
         strip=False,
         widget=forms.PasswordInput,
         validators=[
-            MinLengthValidator(8, message="Пароль должен быть не менее 8 символов."),
-            MaxLengthValidator(50, message="Пароль должен быть не более 50 символов."),
+            MinLengthValidator(8, message="Пароль має бути не менше 8 символів."),
+            MaxLengthValidator(50, message="Пароль має бути не більше 50 символів."),
         ],
     )
 
     password2 = forms.CharField(
-        label="Password confirmation",
+        label="Підтвердження пароля",
         widget=forms.PasswordInput,
         strip=False,
-        help_text="Введите пароль ещё раз для подтверждения.",
+        help_text="Введіть пароль ще раз для підтвердження.",
         validators=[
-            MinLengthValidator(8, message="Пароль должен быть не менее 8 символов."),
-            MaxLengthValidator(50, message="Пароль должен быть не более 50 символов."),
+            MinLengthValidator(8, message="Пароль має бути не менше 8 символів."),
+            MaxLengthValidator(50, message="Пароль має бути не більше 50 символів."),
         ],
     )
 
     class Meta:
         model = get_user_model()  # Automatically fetches the custom user model
         fields = ["username", "email", "password1", "password2"]
+        labels = {
+            "username": "Ім'я користувача",
+        }
+        help_texts = {
+            "username": "Не більше 150 символів. Літери, цифри і @/./+/-/_ тільки.",
+        }
 
 
 class LoginForm(forms.Form):
