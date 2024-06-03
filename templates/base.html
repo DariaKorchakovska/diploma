@@ -114,6 +114,44 @@
         box-sizing: border-box;
         border-radius: 8px;
     }
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 300px;
+    background-color: white;
+    color: red;
+    text-align: left;
+    border: 1px solid black;
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* Позиционирование сверху */
+    left: 50%;
+    margin-left: -150px; /* Половина ширины */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip .tooltiptext a {
+    color: blue;
+    text-decoration: underline;
+}
+
+.tooltip .tooltiptext a:hover {
+    color: darkblue;
+}
+        
     </style>
 </head>
 <body>
@@ -150,7 +188,7 @@
             <form action="{% url 'consultation_list' %}" method="get">
                 <button type="submit">Підтвердити консультації</button>
             </form>
-        </li> 
+        </li>
         {% else %}
         <li>
             <form action="{% url 'add_api_key' %}" method="get">
