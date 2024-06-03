@@ -119,6 +119,12 @@ class GoalForm(forms.ModelForm):
             raise ValidationError("Неможливо встановити ціль на минулу дату.")
         return selected_date
 
+    def clean_amount(self):
+        amount = self.cleaned_data["amount"]
+        if amount < 0:
+            raise ValidationError("Сума не може бути від'ємною.")
+        return amount
+
 
 class BankConnectionForm(forms.ModelForm):
     api_key = forms.CharField(
