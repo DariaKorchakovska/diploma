@@ -45,7 +45,29 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "expenses_monitoring.apps.ExpencesMonitoringConfig",
+    # 'django.contrib.sites',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
 ]
+#
+# SITE_ID = 1
+#
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.your-email-provider.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@example.com'
+# EMAIL_HOST_PASSWORD = 'your-email-password'
+# DEFAULT_FROM_EMAIL = 'your-email@example.com'
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+# ACCOUNT_EMAIL_REQUIRED = True
+# AUTH_USER_MODEL = 'expenses_monitoring.CustomUser'
+# ACCOUNT_FORMS = {
+#     'signup': 'expenses_monitoring.forms.CustomSignupForm',
+# }
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

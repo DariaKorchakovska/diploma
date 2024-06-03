@@ -145,6 +145,13 @@
         </li>
         {% endif %}
         {% if user.is_authenticated %}
+        {% if user.is_staff %}
+        <li>
+            <form action="{% url 'consultation_list' %}" method="get">
+                <button type="submit">Підтвердити консультації</button>
+            </form>
+        </li> 
+        {% else %}
         <li>
             <form action="{% url 'add_api_key' %}" method="get">
                 <button type="submit">Підключити банк</button>
@@ -165,12 +172,6 @@
                 <button type="submit">Замовити консультацію</button>
             </form>
         </li>
-        {% if user.is_staff %}
-        <li>
-            <form action="{% url 'consultation_list' %}" method="get">
-                <button type="submit">Підтвердити консультації</button>
-            </form>
-        </li> 
         {% endif %}
         {% endif %}
     </ul>

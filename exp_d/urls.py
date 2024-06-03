@@ -25,6 +25,7 @@ urlpatterns = [
     path("", include("expenses_monitoring.urls")),
     path(
         "accounts/",
+        # include('allauth.urls'),
         include(
             [
                 path("login/", login, name="login"),

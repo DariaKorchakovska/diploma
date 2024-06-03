@@ -4,6 +4,8 @@ import threading
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login
+from django.urls import reverse
+
 from .forms import (
     RegisterForm,
     LoginForm,
@@ -13,7 +15,7 @@ from .forms import (
     ConsultationAPPForm,
 )
 from datetime import datetime, timedelta
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 from .lib import (
@@ -33,13 +35,16 @@ log = logging.getLogger(__name__)
 
 def index(request):
     if request.user.is_authenticated:
-        # Fetch the user's financial goals and consultations
-        goals = Goal.objects.filter(user=request.user)
-        consultations = Consultation.objects.filter(user=request.user)
+        if request.user.is_staff:
+            return HttpResponseRedirect(reverse('consultation_list'))
+        else:
+            # Fetch the user's financial goals and consultations
+            goals = Goal.objects.filter(user=request.user)
+            consultations = Consultation.objects.filter(user=request.user)
         # Pass these to the template
-        return render(
-            request, "index.html", {"goals": goals, "consultations": consultations}
-        )
+            return render(
+                request, "index.html", {"goals": goals, "consultations": consultations}
+            )
     # If the user is not authenticated, just render the basic index page
     return render(request, "index.html")
 
