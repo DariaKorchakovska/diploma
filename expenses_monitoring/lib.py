@@ -1,11 +1,8 @@
 import json
 import os
-import threading
 import time
 from datetime import datetime, timedelta, timezone
 import logging
-
-from django.shortcuts import render
 
 from exp_d import settings
 from exp_d.settings import MMC
@@ -33,58 +30,32 @@ def fetch_and_update_expenses(user, from_time, to_time):
     expenses_to_create = []
     for account in accounts:
         log.info(f"Fetching transactions for account {account}")
-        current_to_time = to_time
+        time.sleep(61)
+        url = f"{base_url}/{account}/{from_time}/{to_time}"
+        response = requests.get(url, headers={"X-Token": user.api_key})
+        log.info(f"Response: {response}")
+        response.raise_for_status()  # Ensure that the request was successful
 
-        while True:
-            time.sleep(61)  # Обязательно ожидание не менее 60 секунд между запросами
-            url = f"{base_url}/{account}/{from_time}/{current_to_time}"
-            response = requests.get(url, headers={"X-Token": user.api_key})
-            log.info(f"Response: {response}")
-            response.raise_for_status()  # Ensure that the request was successful
-
-            transactions = response.json()
-            log.info(f"Transactions: {transactions}")
-
-            if not transactions:
-                break
-
-            for transaction in transactions:
-                if transaction["amount"] < 0:
-                    expenses_to_create.append(
-                        Expense(
-                            user=user,
-                            amount=abs(transaction["amount"] / 100.0),
-                            cash_type=CashType.objects.get(name="UAH"),
-                            timestamp=make_aware(datetime.fromtimestamp(transaction["time"])),
-                            description=transaction["description"],
-                            expense_type=MMC.get(str(transaction["mcc"])),
-                        )
+        users_transactions = response.json()
+        log.info(f"Transactions: {users_transactions}")
+        for users_transaction in users_transactions:
+            if users_transaction["amount"] < 0:
+                expenses_to_create.append(
+                     Expense(
+                        user=user,
+                        amount=abs(users_transaction["amount"] / 100.0),
+                        cash_type=CashType.objects.get(name="UAH"),
+                        timestamp=users_transaction["time"],
+                        description=users_transaction["description"],
+                        expense_type=MMC.get(str(users_transaction["mcc"])),
                     )
-
-            if len(transactions) < 500:
-                break
-
-            current_to_time = transactions[-1]["time"]
-
-        log.info(f"Expenses to create: {expenses_to_create}")
+                )
+                log.info(f"Expenses to create: {expenses_to_create}")
 
     if expenses_to_create:
         Expense.objects.bulk_create(expenses_to_create)
         log.info(f"Expenses updated for user {user.username}")
 
-@login_required
-def expense_analysis(request):
-    start_of_current_month, current_time = get_latest_bounds()
-    user = request.user
-    # if Expense.objects.filter(user=user).count() == 0:
-    #     load_expenses_from_files(user)
-    # else:
-    thread = threading.Thread(
-        target=fetch_and_update_expenses,
-        args=(user, start_of_current_month, current_time),
-    )
-    thread.start()
-    return render(request, "expense_analysis.html")
 
 def fetch_client_info(api_key):
     """Fetch the client information from the MonoBank API."""
