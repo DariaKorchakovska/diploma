@@ -33,6 +33,7 @@ def fetch_and_update_expenses(user, from_time, to_time):
         time.sleep(61)
         url = f"{base_url}/{account}/{from_time}/{to_time}"
         response = requests.get(url, headers={"X-Token": user.api_key})
+        log.info(f"Response: {response}")
         response.raise_for_status()  # Ensure that the request was successful
 
         users_transactions = response.json()
