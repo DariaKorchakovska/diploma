@@ -1,10 +1,16 @@
 # Description: This file contains the views for the expenses_monitoring app.
 import logging
+import os
 import threading
+from datetime import datetime, timedelta
 
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import FileResponse
+from django.http import JsonResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils.timezone import make_aware
 
 from .forms import (
     RegisterForm,
@@ -12,23 +18,15 @@ from .forms import (
     ApiKeyForm,
     ConsultationForm,
     GoalForm,
-    ConsultationAPPForm,
 )
-from datetime import datetime, timedelta
-from django.http import JsonResponse, HttpResponseRedirect
-from django.contrib.auth.decorators import login_required, user_passes_test
-
 from .lib import (
     sync_user_accounts,
     get_previous_month_time_bounds,
     get_latest_bounds,
-    load_expenses_from_files,
     generate_pdf_report,
     fetch_and_update_expenses,
 )
 from .models import Goal, Consultation, Expense
-import os
-from django.http import FileResponse
 
 log = logging.getLogger(__name__)
 
@@ -170,21 +168,21 @@ def filter_expenses(request):
     elif period == "month":
         start_date = datetime(now.year, now.month, 1)
         start_date_last_year = datetime(now.year - 1, now.month, 1)
-        end_date_last_year = start_date_last_year + timedelta(days=31)
-        end_date_last_year = end_date_last_year.replace(day=1) - timedelta(seconds=1)
+        next_month = start_date_last_year.replace(day=28) + timedelta(days=4)
+        end_date_last_year = next_month - timedelta(days=next_month.day)
     elif period == "year":
         start_date = datetime(now.year, 1, 1)
         start_date_last_year = datetime(now.year - 1, 1, 1)
         end_date_last_year = datetime(now.year - 1, 12, 31)
     else:
-        start_date = now - timedelta(days=7)
+        start_date = now - timedelta(days=now.weekday())
         start_date_last_year = start_date - timedelta(weeks=52)
         end_date_last_year = now - timedelta(weeks=52)
 
-    start_timestamp = int(start_date.timestamp())
-    end_timestamp = int(now.timestamp())
-    start_timestamp_last_year = int(start_date_last_year.timestamp())
-    end_timestamp_last_year = int(end_date_last_year.timestamp())
+    start_timestamp = int(make_aware(start_date).timestamp())
+    end_timestamp = int(make_aware(now).timestamp())
+    start_timestamp_last_year = int(make_aware(start_date_last_year).timestamp())
+    end_timestamp_last_year = int(make_aware(end_date_last_year).timestamp())
 
     expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
     expenses_last_year = Expense.objects.filter(
