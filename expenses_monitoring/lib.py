@@ -59,16 +59,16 @@ def fetch_and_update_expenses(user, from_time, to_time):
             if not transactions:
                 break
 
-            for transact in transactions:
-                if transaction["amount"] < 0:
+            for txn in transactions:  # Используем другое имя переменной
+                if txn["amount"] < 0:
                     expenses_to_create.append(
                         Expense(
                             user=user,
-                            amount=abs(transact["amount"] / 100.0),
+                            amount=abs(txn["amount"] / 100.0),
                             cash_type=CashType.objects.get(name="UAH"),
-                            timestamp=make_aware(datetime.fromtimestamp(transact["time"])),
-                            description=transaction["description"],
-                            expense_type=MMC.get(str(transact["mcc"])),
+                            timestamp=make_aware(datetime.fromtimestamp(txn["time"])),
+                            description=txn["description"],
+                            expense_type=MMC.get(str(txn["mcc"])),
                         )
                     )
 

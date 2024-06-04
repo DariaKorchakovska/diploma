@@ -162,19 +162,23 @@ def filter_expenses(request):
 
     now = datetime.now()
     if period == "week":
+        # Начало недели (понедельник)
         start_date = now - timedelta(days=now.weekday())
         start_date_last_year = start_date - timedelta(weeks=52)
         end_date_last_year = now - timedelta(weeks=52)
     elif period == "month":
+        # Первый день месяца
         start_date = datetime(now.year, now.month, 1)
         start_date_last_year = datetime(now.year - 1, now.month, 1)
         next_month = start_date_last_year.replace(day=28) + timedelta(days=4)
         end_date_last_year = next_month - timedelta(days=next_month.day)
     elif period == "year":
+        # Первый день текущего года
         start_date = datetime(now.year, 1, 1)
         start_date_last_year = datetime(now.year - 1, 1, 1)
         end_date_last_year = datetime(now.year - 1, 12, 31)
     else:
+        # По умолчанию текущая неделя
         start_date = now - timedelta(days=now.weekday())
         start_date_last_year = start_date - timedelta(weeks=52)
         end_date_last_year = now - timedelta(weeks=52)
@@ -219,9 +223,6 @@ def filter_expenses(request):
 def expense_analysis(request):
     start_of_current_month, current_time = get_latest_bounds()
     user = request.user
-    # if Expense.objects.filter(user=user).count() == 0:
-    #     load_expenses_from_files(user)
-    # else:
     thread = threading.Thread(
         target=fetch_and_update_expenses,
         args=(user, start_of_current_month, current_time),
