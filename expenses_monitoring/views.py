@@ -105,19 +105,19 @@ def add_api_key(request):
             api_key_instance.user = request.user
             api_key_instance.save()
             log.info(f"API key {api_key_instance.api_key} added for user {request.user}")
-            api_key = request.user.api_key
-            if api_key:
-                sync_user_accounts(request.user)
-            (
-                start_of_previous_month,
-                end_of_previous_month,
-            ) = get_previous_month_time_bounds()
-            threadm = threading.Thread(
-                target=sync_user_accounts,
-                args=(request.user, start_of_previous_month, end_of_previous_month),
-            )
-            threadm.start()
-            return redirect("index")
+        api_key = request.user.api_key
+        if api_key:
+            sync_user_accounts(request.user)
+        (
+            start_of_previous_month,
+            end_of_previous_month,
+        ) = get_previous_month_time_bounds()
+        threadm = threading.Thread(
+            target=sync_user_accounts,
+            args=(request.user, start_of_previous_month, end_of_previous_month),
+        )
+        threadm.start()
+        return redirect("index")
     else:
         form = ApiKeyForm()
     return render(request, "add_api_key.html", {"form": form})
