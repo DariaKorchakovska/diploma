@@ -151,3 +151,41 @@ class Goal(models.Model):
 - Відвідайте `/create-goal/` для встановлення фінансових цілей.
 - Відвідайте `/expense-analysis/` для аналізу ваших витрат.
 
+## CI/CD Налаштування
+
+Файл `.github/workflows/deploy.yml` містить налаштування для автоматичного деплою на сервер при пуші до гілки `main`.
+
+### Налаштування
+
+```yaml
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy to Server
+        env:
+          HOST: 129.159.41.235
+          USER: ubuntu
+          PORT: 22
+        run: |
+          ssh -o StrictHostKeyChecking=no -i deploy_key -p $PORT $USER@$HOST /opt/etc/dockers/DariaKorchakovska/diploma/update.sh
+```
+
+Це налаштування дозволяє автоматично деплоїти код на сервер, використовуючи SSH ключ, зберігаючи його у секретах GitHub.
+
