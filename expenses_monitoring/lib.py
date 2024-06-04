@@ -6,7 +6,6 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 from django.db import transaction
-from django.utils.timezone import make_aware
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -66,7 +65,7 @@ def fetch_and_update_expenses(user, from_time, to_time):
                             user=user,
                             amount=abs(txn["amount"] / 100.0),
                             cash_type=CashType.objects.get(name="UAH"),
-                            timestamp=make_aware(datetime.fromtimestamp(txn["time"])),
+                            timestamp=txn["time"],  # Сохраняем Unix timestamp
                             description=txn["description"],
                             expense_type=MMC.get(str(txn["mcc"])),
                         )

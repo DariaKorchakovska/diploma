@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 
 
 class CustomUser(AbstractUser):
@@ -75,7 +75,7 @@ class Expense(models.Model):
     )  # Assuming 'CustomUser' is correctly defined elsewhere
     amount = models.FloatField()
     cash_type = models.ForeignKey("CashType", on_delete=models.CASCADE)
-    timestamp = models.BigIntegerField(default=datetime.now().timestamp())
+    timestamp = models.BigIntegerField(default=int(datetime.now().timestamp()))
     description = models.TextField()
     expense_type = models.CharField(max_length=100)
 
