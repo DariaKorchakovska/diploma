@@ -24,8 +24,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="expense",
-            index=models.Index(
-                fields=["timestamp"], name="expenses_mo_timesta_4439f2_idx"
-            ),
+            index=models.Index(fields=["timestamp"], name="expenses_mo_timesta_4439f2_idx"),
         ),
     ]

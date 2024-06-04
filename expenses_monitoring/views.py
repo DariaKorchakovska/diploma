@@ -36,15 +36,13 @@ log = logging.getLogger(__name__)
 def index(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
-            return HttpResponseRedirect(reverse('consultation_list'))
+            return HttpResponseRedirect(reverse("consultation_list"))
         else:
             # Fetch the user's financial goals and consultations
             goals = Goal.objects.filter(user=request.user)
             consultations = Consultation.objects.filter(user=request.user)
-        # Pass these to the template
-            return render(
-                request, "index.html", {"goals": goals, "consultations": consultations}
-            )
+            # Pass these to the template
+            return render(request, "index.html", {"goals": goals, "consultations": consultations})
     # If the user is not authenticated, just render the basic index page
     return render(request, "index.html")
 
@@ -59,9 +57,7 @@ def register(request):
             log.info(f"new useer {user.username} created.")
             auth_login(request, user)  # Log the user in directly after registration
 
-            return redirect(
-                "index"
-            )  # Redirect to a home page or other appropriate page
+            return redirect("index")  # Redirect to a home page or other appropriate page
         else:
             return render(request, "register.html", {"form": form})
     else:
@@ -110,9 +106,7 @@ def add_api_key(request):
             api_key_instance = form.save(commit=False)
             api_key_instance.user = request.user
             api_key_instance.save()
-            log.info(
-                f"API key {api_key_instance.api_key} added for user {request.user}"
-            )
+            log.info(f"API key {api_key_instance.api_key} added for user {request.user}")
             api_key = request.user.api_key
             if api_key:
                 sync_user_accounts(request.user)
@@ -143,9 +137,7 @@ def request_consultation(request):
             consultation.user = request.user
             consultation.approved = False  # Ставимо за замовчуванням, що не затверджено
             consultation.save()
-            return redirect(
-                "index"
-            )  # Перенаправляємо на головну сторінку або на сторінку успіху
+            return redirect("index")  # Перенаправляємо на головну сторінку або на сторінку успіху
     else:
         form = ConsultationForm()
     return render(request, "request_consultation.html", {"form": form})
@@ -194,9 +186,7 @@ def filter_expenses(request):
     start_timestamp_last_year = int(start_date_last_year.timestamp())
     end_timestamp_last_year = int(end_date_last_year.timestamp())
 
-    expenses = Expense.objects.filter(
-        user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp
-    )
+    expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
     expenses_last_year = Expense.objects.filter(
         user=user,
         timestamp__gte=start_timestamp_last_year,
@@ -281,9 +271,7 @@ def generate_pdf_report_view(request):
     start_timestamp = int(start_date.timestamp())
     end_timestamp = int(now.timestamp())
 
-    expenses = Expense.objects.filter(
-        user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp
-    )
+    expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
 
     expense_summary = {}
     for expense in expenses:
@@ -293,8 +281,6 @@ def generate_pdf_report_view(request):
 
     filename = generate_pdf_report(user, expenses, expense_summary, period)
     response = FileResponse(open(filename, "rb"), content_type="application/pdf")
-    response[
-        "Content-Disposition"
-    ] = f'attachment; filename="{os.path.basename(filename)}"'
+    response["Content-Disposition"] = f'attachment; filename="{os.path.basename(filename)}"'
 
     return response

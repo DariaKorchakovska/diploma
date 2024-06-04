@@ -18,9 +18,7 @@ class RegisterForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
         label="Електронна пошта",
-        validators=[
-            EmailValidator(message="Введіть правильну адресу електронної пошти.")
-        ],
+        validators=[EmailValidator(message="Введіть правильну адресу електронної пошти.")],
     )
 
     password1 = forms.CharField(
@@ -89,9 +87,7 @@ class ConsultationForm(forms.ModelForm):
         if date and time:
             consultation_datetime = datetime.combine(date, time)
             if consultation_datetime < datetime.now():
-                raise ValidationError(
-                    "Неможливо замовити консультацію на минулі дати або години."
-                )
+                raise ValidationError("Неможливо замовити консультацію на минулі дати або години.")
 
         return cleaned_data
 
@@ -141,6 +137,7 @@ class ConsultationAPPForm(forms.ModelForm):
     class Meta:
         model = Consultation
         fields = ["approved"]
+
 
 #
 # class CustomSignupForm(SignupForm):

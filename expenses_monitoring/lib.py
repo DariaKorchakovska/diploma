@@ -103,7 +103,7 @@ def update_or_create_accounts(user, data):
                     user=user,
                     account_id=account_data["id"],  # Use the account ID to identify the account
                     defaults={
-                        "maskedPan": account_data["maskedPan"][0] if account_data.get("maskedPan") else "",
+                        "maskedPan": (account_data["maskedPan"][0] if account_data.get("maskedPan") else ""),
                         "iban": account_data["iban"],
                         "currencyCode": account_data["currencyCode"],
                         "balance": account_data["balance"],

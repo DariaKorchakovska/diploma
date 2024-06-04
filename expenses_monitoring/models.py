@@ -11,11 +11,7 @@ class CustomUser(AbstractUser):
 
     @property
     def api_key(self):
-        return (
-            self.bankconnection.first().api_key
-            if self.bankconnection.exists()
-            else None
-        )
+        return self.bankconnection.first().api_key if self.bankconnection.exists() else None
 
     @property
     def accounts(self):
@@ -47,16 +43,12 @@ class Goal(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(
-                fields=["user"]
-            ),  # Single index on user if filtering by user alone is common
+            models.Index(fields=["user"]),  # Single index on user if filtering by user alone is common
         ]
 
 
 class BankConnection(models.Model):
-    user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name="bankconnection"
-    )
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="bankconnection")
     api_key = models.CharField(max_length=100)
 
     class Meta:
@@ -70,9 +62,7 @@ class Account(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(
-                fields=["user"]
-            ),  # Single index on user if filtering by user alone is common
+            models.Index(fields=["user"]),  # Single index on user if filtering by user alone is common
         ]
 
     def __str__(self):
@@ -116,15 +106,9 @@ class Consultation(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(
-                fields=["date"]
-            ),  # Index on date for filtering or sorting by date
-            models.Index(
-                fields=["user"]
-            ),  # Single index on user if filtering by user alone is common
+            models.Index(fields=["date"]),  # Index on date for filtering or sorting by date
+            models.Index(fields=["user"]),  # Single index on user if filtering by user alone is common
         ]
 
     def __str__(self):
-        return (
-            f"Consultation: {self.user} - {self.date} - {self.time} - {self.approved}"
-        )
+        return f"Consultation: {self.user} - {self.date} - {self.time} - {self.approved}"

@@ -28,9 +28,7 @@ def load_expenses_from_files(user_name, data_directory="data/statements"):
                                 cash_type=cash_type,
                                 timestamp=transaction["time"],
                                 description=transaction["description"],
-                                expense_type=transaction.get(
-                                    "mcc", "Unknown"
-                                ),  # Adjust this line as needed
+                                expense_type=transaction.get("mcc", "Unknown"),  # Adjust this line as needed
                             )
                         )
 

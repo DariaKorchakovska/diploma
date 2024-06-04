@@ -24,9 +24,7 @@ urlpatterns = [
     path("expense-analysis/", expense_analysis, name="expense_analysis"),
     path("filter-expenses/", filter_expenses, name="filter_expenses"),
     path("generate-pdf-report/", generate_pdf_report_view, name="generate_pdf_report"),
-    path(
-        "password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"
-    ),
+    path("password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
     path(
         "password_reset/done/",
         auth_views.PasswordResetDoneView.as_view(),

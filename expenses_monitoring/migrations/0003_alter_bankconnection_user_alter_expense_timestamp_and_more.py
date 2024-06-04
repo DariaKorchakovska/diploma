@@ -54,9 +54,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "indexes": [
-                    models.Index(fields=["user"], name="expenses_mo_user_id_a3b855_idx")
-                ],
+                "indexes": [models.Index(fields=["user"], name="expenses_mo_user_id_a3b855_idx")],
             },
         ),
     ]
