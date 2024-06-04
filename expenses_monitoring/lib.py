@@ -1,22 +1,20 @@
 import json
+import logging
 import os
 import time
 from datetime import datetime, timedelta, timezone
-import logging
+
+import requests
+from django.db import transaction
+from django.utils.timezone import make_aware
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 
 from exp_d import settings
 from exp_d.settings import MMC
-from django.db import transaction
-import requests
-
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-from django.core.exceptions import ObjectDoesNotExist
-
-from expenses_monitoring.models import CashType, Expense, CustomUser, Account
+from expenses_monitoring.models import CashType, Expense, Account
 
 log = logging.getLogger(__name__)
 
@@ -26,31 +24,60 @@ def fetch_and_update_expenses(user, from_time, to_time):
 
     accounts = user.accounts
     base_url = "https://api.monobank.ua/personal/statement"
+    max_retries = 5
+    retry_delay = 61  # Начальное время задержки в секундах
 
     expenses_to_create = []
     for account in accounts:
         log.info(f"Fetching transactions for account {account}")
-        time.sleep(61)
-        url = f"{base_url}/{account}/{from_time}/{to_time}"
-        response = requests.get(url, headers={"X-Token": user.api_key})
-        log.info(f"Response: {response}")
-        response.raise_for_status()  # Ensure that the request was successful
+        current_to_time = to_time
 
-        users_transactions = response.json()
-        log.info(f"Transactions: {users_transactions}")
-        for users_transaction in users_transactions:
-            if users_transaction["amount"] < 0:
-                expenses_to_create.append(
-                     Expense(
-                        user=user,
-                        amount=abs(users_transaction["amount"] / 100.0),
-                        cash_type=CashType.objects.get(name="UAH"),
-                        timestamp=users_transaction["time"],
-                        description=users_transaction["description"],
-                        expense_type=MMC.get(str(users_transaction["mcc"])),
+        while True:
+            for attempt in range(max_retries):
+                try:
+                    time.sleep(retry_delay)  # Обязательно ожидание между запросами
+                    url = f"{base_url}/{account}/{from_time}/{current_to_time}"
+                    response = requests.get(url, headers={"X-Token": user.api_key})
+                    log.info(f"Response: {response}")
+                    response.raise_for_status()  # Ensure that the request was successful
+                    break  # Если запрос успешен, выйти из цикла попыток
+                except requests.exceptions.HTTPError as e:
+                    if response.status_code == 429:
+                        log.warning(f"Received 429 Too Many Requests. Retrying in {retry_delay} seconds...")
+                        time.sleep(retry_delay)  # Увеличить задержку перед повторной попыткой
+                        retry_delay *= 2  # Увеличить время задержки для следующей попытки
+                    else:
+                        log.error(f"HTTP error occurred: {e}")
+                        return
+                except requests.exceptions.RequestException as e:
+                    log.error(f"Error occurred: {e}")
+                    return
+
+            transactions = response.json()
+            log.info(f"Transactions: {transactions}")
+
+            if not transactions:
+                break
+
+            for transact in transactions:
+                if transaction["amount"] < 0:
+                    expenses_to_create.append(
+                        Expense(
+                            user=user,
+                            amount=abs(transact["amount"] / 100.0),
+                            cash_type=CashType.objects.get(name="UAH"),
+                            timestamp=make_aware(datetime.fromtimestamp(transact["time"])),
+                            description=transaction["description"],
+                            expense_type=MMC.get(str(transact["mcc"])),
+                        )
                     )
-                )
-                log.info(f"Expenses to create: {expenses_to_create}")
+
+            if len(transactions) < 500:
+                break
+
+            current_to_time = transactions[-1]["time"]
+
+        log.info(f"Expenses to create: {expenses_to_create}")
 
     if expenses_to_create:
         Expense.objects.bulk_create(expenses_to_create)
@@ -74,13 +101,9 @@ def update_or_create_accounts(user, data):
             for account_data in data["accounts"]:
                 account, created = Account.objects.update_or_create(
                     user=user,
-                    account_id=account_data[
-                        "id"
-                    ],  # Use the account ID to identify the account
+                    account_id=account_data["id"],  # Use the account ID to identify the account
                     defaults={
-                        "maskedPan": account_data["maskedPan"][0]
-                        if account_data.get("maskedPan")
-                        else "",
+                        "maskedPan": account_data["maskedPan"][0] if account_data.get("maskedPan") else "",
                         "iban": account_data["iban"],
                         "currencyCode": account_data["currencyCode"],
                         "balance": account_data["balance"],
@@ -121,16 +144,10 @@ def get_previous_month_time_bounds():
     now = datetime.now()
     first_day_of_current_month = datetime(now.year, now.month, 1)
     first_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
-    first_day_of_previous_month = datetime(
-        first_day_of_previous_month.year, first_day_of_previous_month.month, 1
-    )
+    first_day_of_previous_month = datetime(first_day_of_previous_month.year, first_day_of_previous_month.month, 1)
     last_day_of_previous_month = first_day_of_current_month - timedelta(seconds=1)
-    start_of_previous_month = int(
-        first_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp()
-    )
-    end_of_previous_month = int(
-        last_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp()
-    )
+    start_of_previous_month = int(first_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp())
+    end_of_previous_month = int(last_day_of_previous_month.replace(tzinfo=timezone.utc).timestamp())
 
     return start_of_previous_month, end_of_previous_month
 
@@ -143,9 +160,7 @@ def get_current_month_time_bounds():
     """
     now = datetime.now()
     first_day_of_current_month = datetime(now.year, now.month, 1)
-    start_of_current_month = int(
-        first_day_of_current_month.replace(tzinfo=timezone.utc).timestamp()
-    )
+    start_of_current_month = int(first_day_of_current_month.replace(tzinfo=timezone.utc).timestamp())
     current_time = int(now.replace(tzinfo=timezone.utc).timestamp())
 
     return start_of_current_month, current_time
@@ -164,9 +179,7 @@ def get_latest_bounds():
 
     # Assuming latest_timestamp can be a datetime object or an integer timestamp
     if isinstance(latest_timestamp, datetime):
-        latest_timestamp = int(
-            latest_timestamp.replace(tzinfo=timezone.utc).timestamp()
-        )
+        latest_timestamp = int(latest_timestamp.replace(tzinfo=timezone.utc).timestamp())
 
     return latest_timestamp, current_time
 
@@ -175,9 +188,7 @@ def load_expenses_from_files(user):
     """
     Load expenses from JSON files and save them to the database for the given user.
     """
-    data_directory = os.path.join(
-        settings.BASE_DIR, "data", "statements", user.username
-    )
+    data_directory = str(os.path.join(settings.BASE_DIR, "data", "statements", user.username))
     cash_type = CashType.objects.get(name="UAH")
     expenses_to_create = []
 
@@ -193,15 +204,11 @@ def load_expenses_from_files(user):
                             expenses_to_create.append(
                                 Expense(
                                     user=user,
-                                    amount=abs(
-                                        amount
-                                    ),  # Take the absolute value of negative amounts
+                                    amount=abs(amount),  # Take the absolute value of negative amounts
                                     cash_type=cash_type,
                                     timestamp=transaction["time"],
                                     description=transaction["description"],
-                                    expense_type=settings.MMC.get(
-                                        str(transaction["mcc"]), "Unknown"
-                                    ),
+                                    expense_type=settings.MMC.get(str(transaction["mcc"]), "Unknown"),
                                 )
                             )
 
