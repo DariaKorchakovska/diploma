@@ -120,6 +120,18 @@ def add_api_key(request):
         return redirect("index")
     else:
         form = ApiKeyForm()
+        api_key = request.user.api_key
+        if api_key:
+            sync_user_accounts(request.user)
+        (
+            start_of_previous_month,
+            end_of_previous_month,
+        ) = get_previous_month_time_bounds()
+        threadm = threading.Thread(
+            target=sync_user_accounts,
+            args=(request.user, start_of_previous_month, end_of_previous_month),
+        )
+        threadm.start()
     return render(request, "add_api_key.html", {"form": form})
 
 
