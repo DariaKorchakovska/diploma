@@ -166,7 +166,7 @@ def filter_expenses(request):
         start_date_last_year = start_date - timedelta(weeks=52)
         end_date_last_year = start_date_last_year + timedelta(days=7)
     elif period == "month":
-        start_date = datetime(now.year, now.month, 1)
+        start_date = datetime(now.year, now.month, 1) - timedelta(days=1)
         start_date_last_year = datetime(now.year - 1, now.month, 1)
         next_month = start_date_last_year.replace(day=28) + timedelta(days=4)
         end_date_last_year = next_month - timedelta(days=next_month.day)
