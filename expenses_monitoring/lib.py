@@ -24,7 +24,7 @@ def fetch_and_update_expenses(user, from_time, to_time):
     accounts = user.accounts
     base_url = "https://api.monobank.ua/personal/statement"
     max_retries = 5
-    retry_delay = 61  # Начальное время задержки в секундах
+    retry_delay = 61
 
     expenses_to_create = []
     for account in accounts:
@@ -34,23 +34,23 @@ def fetch_and_update_expenses(user, from_time, to_time):
         while True:
             for attempt in range(max_retries):
                 try:
-                    time.sleep(retry_delay)  # Обязательно ожидание между запросами
+                    time.sleep(retry_delay)
                     url = f"{base_url}/{account}/{from_time}/{current_to_time}"
                     response = requests.get(url, headers={"X-Token": user.api_key})
                     log.info(f"Response: {response}")
-                    response.raise_for_status()  # Ensure that the request was successful
-                    break  # Если запрос успешен, выйти из цикла попыток
+                    response.raise_for_status()
+                    break
                 except requests.exceptions.HTTPError as e:
                     if response.status_code == 429:
                         log.warning(f"Received 429 Too Many Requests. Retrying in {retry_delay} seconds...")
-                        time.sleep(retry_delay)  # Увеличить задержку перед повторной попыткой
-                        retry_delay *= 2  # Увеличить время задержки для следующей попытки
+                        time.sleep(retry_delay)
+                        retry_delay *= 2
                     else:
                         log.error(f"HTTP error occurred: {e}")
-                        return
+                        continue
                 except requests.exceptions.RequestException as e:
                     log.error(f"Error occurred: {e}")
-                    return
+                    continue
 
             transactions = response.json()
             log.info(f"Transactions: {transactions}")
@@ -58,14 +58,14 @@ def fetch_and_update_expenses(user, from_time, to_time):
             if not transactions:
                 break
 
-            for txn in transactions:  # Используем другое имя переменной
+            for txn in transactions:
                 if txn["amount"] < 0:
                     expenses_to_create.append(
                         Expense(
                             user=user,
                             amount=abs(txn["amount"] / 100.0),
                             cash_type=CashType.objects.get(name="UAH"),
-                            timestamp=txn["time"],  # Сохраняем Unix timestamp
+                            timestamp=txn["time"],
                             description=txn["description"],
                             expense_type=MMC.get(str(txn["mcc"])),
                         )
