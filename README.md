@@ -144,47 +144,156 @@ class Goal(models.Model):
         return f"Goal: {self.description} - {self.amount} {self.cash_type}"
 ```
 
+### filter_expenses
+
+Це представлення фільтрує витрати користувача за обраним періодом (тиждень, місяць, рік) та порівнює їх з витратами за
+аналогічний період попереднього року. Повертає результат у форматі JSON, і використовується длявиводу графіків
+
+```python
+
+@login_required
+def filter_expenses(request):
+    user = request.user
+    period = request.GET.get("period")
+
+    now = datetime.now()
+    if period == "week":
+        start_date = now - timedelta(days=now.weekday() + 1)
+        start_date_last_year = start_date - timedelta(weeks=52)
+        end_date_last_year = start_date_last_year + timedelta(days=7)
+    elif period == "month":
+        start_date = datetime(now.year, now.month, 1) - timedelta(days=1)
+        start_date_last_year = datetime(now.year - 1, now.month, 1)
+        next_month = start_date_last_year.replace(day=28) + timedelta(days=4)
+        end_date_last_year = next_month - timedelta(days=next_month.day)
+    elif period == "year":
+        start_date = datetime(now.year, 1, 1)
+        start_date_last_year = datetime(now.year - 1, 1, 1)
+        end_date_last_year = datetime(now.year - 1, 12, 31)
+    else:
+        start_date = now - timedelta(days=now.weekday() + 1)
+        start_date_last_year = start_date - timedelta(weeks=52)
+        end_date_last_year = start_date_last_year + timedelta(days=7)
+
+    start_timestamp = int(make_aware(start_date).timestamp())
+    end_timestamp = int(make_aware(now).timestamp())
+    start_timestamp_last_year = int(make_aware(start_date_last_year).timestamp())
+    end_timestamp_last_year = int(make_aware(end_date_last_year).timestamp())
+
+    expenses = Expense.objects.filter(user=user, timestamp__gte=start_timestamp, timestamp__lte=end_timestamp)
+    expenses_last_year = Expense.objects.filter(
+        user=user,
+        timestamp__gte=start_timestamp_last_year,
+        timestamp__lte=end_timestamp_last_year,
+    )
+
+    expense_summary = {}
+    expense_summary_last_year = {}
+
+    for expense in expenses:
+        if expense.expense_type not in expense_summary:
+            expense_summary[expense.expense_type] = 0
+        expense_summary[expense.expense_type] += expense.amount
+
+    for expense in expenses_last_year:
+        if expense.expense_type not in expense_summary_last_year:
+            expense_summary_last_year[expense.expense_type] = 0
+        expense_summary_last_year[expense.expense_type] += expense.amount
+
+    pdf_url = f"/generate-pdf-report/?period={period}"
+
+    return JsonResponse(
+        {
+            "expense_summary": expense_summary,
+            "expense_summary_last_year": expense_summary_last_year,
+            "pdf_url": pdf_url,
+        }
+    )
+```
+
 ## Використання
 
-- Відвідайте `/register/` для реєстрації нового користувача.
-- Відвідайте `/add-api-key/` для додавання API ключа.
-- Відвідайте `/create-goal/` для встановлення фінансових цілей.
-- Відвідайте `/expense-analysis/` для аналізу ваших витрат.
+- Відвідайте
+  ` / register / ` для
+  реєстрації
+  нового
+  користувача.
+- Відвідайте
+  ` / add - api - key / ` для
+  додавання
+  API
+  ключа.
+- Відвідайте
+  ` / create - goal / ` для
+  встановлення
+  фінансових
+  цілей.
+- Відвідайте
+  ` / expense - analysis / ` для
+  аналізу
+  ваших
+  витрат.
 
 ## CI/CD Налаштування
 
-Файл `.github/workflows/deploy.yml` містить налаштування для автоматичного деплою на сервер при пуші до гілки `main`.
+Файл
+`.github / workflows / deploy.yml
+` містить
+налаштування
+для
+автоматичного
+деплою
+на
+сервер
+при
+пуші
+до
+гілки
+`main`.
 
 ### Налаштування
 
 ```yaml
-name: Deploy to Server
+name: Deploy
+  to
+  Server
 
 on:
-  push:
-    branches:
-      - main
+push:
+branches:
+  - main
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+deploy:
+runs - on: ubuntu - latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+steps:
+  - name: Checkout
+  code
+uses: actions / checkout @ v2
 
-      - name: Install SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+  - name: Install
+  SSH
+  key
+uses: webfactory / ssh - agent @ v0
+  .5
+  .3
+with:
+  ssh - private - key: ${{secrets.DEPLOY_KEY}}
 
-      - name: Deploy to Server
-        env:
-          HOST: 129.159.41.235
-          USER: ubuntu
-          PORT: 22
-        run: |
-          ssh -o StrictHostKeyChecking=no -i deploy_key -p $PORT $USER@$HOST /opt/etc/dockers/DariaKorchakovska/diploma/update.sh
+  - name: Deploy
+  to
+  Server
+env:
+HOST: 129.159
+  .41
+  .235
+USER: ubuntu
+PORT: 22
+run: |
+  ssh - o
+  StrictHostKeyChecking = no - i
+  deploy_key - p $PORT $USER @$HOST / opt / etc / dockers / DariaKorchakovska / diploma / update.sh
 ```
 
 Це налаштування дозволяє автоматично деплоїти код на сервер, використовуючи SSH ключ, зберігаючи його у секретах GitHub.
